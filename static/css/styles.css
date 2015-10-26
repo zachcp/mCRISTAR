@@ -1,0 +1,84 @@
+
+.container {width: 1000px};
+
+form {
+  padding: 20px;
+  margin-top: 20px;
+  margin-bottom :20px;
+  border: 1px solid grey };
+
+.ui-slider .ui-slider-handle {width:1.0em}
+
+
+.dark {background: lightgray;}
+
+
+.btn-file {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-file input[type=file] {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-width: 100%;
+  min-height: 100%;
+  font-size: 100px;
+  text-align: right;
+  filter: alpha(opacity=0);
+  opacity: 0;
+  background: red;
+  cursor: inherit;
+  display: block;
+}
+input[readonly] {
+  background-color: white !important;
+  cursor: text !important;
+}
+
+
+td {
+overflow: hidden;
+max-width: 350px;
+word-wrap: break-word;
+word-break: break-all;
+white-space: normal;
+padding-bottom: 10px;
+}
+
+#scribl-zoom-slider {
+          width: 4px;
+       }
+
+.BSAI_Recognition {
+ background: rgb(128, 0, 128); /* Fall-back for browsers that don't support rgba */
+ background: rgba(128, 0, 128, .2);
+}
+.BSAI_Cut_Site {
+ background: rgb(128, 0, 128); /* Fall-back for browsers that don't support rgba */
+ background: rgba(128, 0, 128, .2);
+}
+.crisprsite {
+ background: rgb(255, 0, 0); /* Fall-back for browsers that don't support rgba */
+ background: rgba(255, 0, 0, .2);
+}
+.CRISPR_Direct_Repeat {
+ background: rgb(255, 165, 0,); /* Fall-back for browsers that don't  support rgba */
+ background: rgba(255, 165, 0, .2);
+}
+
+#refactor {
+    padding: 200px;
+}
+
+#data {
+    padding: 200px;
+}
+
+/* some style */
+
+
+
+.gap.active {fill:red;}
+.gap.inactive {fill:blue;}

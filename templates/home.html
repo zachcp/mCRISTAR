@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+
+
+{% block header%}
+<!-- Header -->
+<header>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12">
+                <img class="img-responsive" src="{{url_for('static', filename="img/logo.png")}}" alt="", width="300px">
+                <div class="intro-text">
+                    <span class="name">
+                        <font style="text-transform: lowercase;">m</font>CRISTAR
+                    </span>
+                    <hr class="star-light">
+                    <span class="skills"> (multiplexed CRISPR and TAR) </span>
+                    <br>
+                    <span class="skills"> A webapp for refactiong gene clusters</span>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+{% endblock %}
+
+
+
+{% block about %}
+<!-- About Section -->
+<section id="about">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <h2>About mCRISTAR</h2>
+                <hr class="star-light">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6">
+                <p>mCRISTAR is a tool for refactoring biosynthetic gene clusters with a minimum amount of DNA sequencing.
+                The basic idea is to use homologous recombination to swap out inactive/silent promototers for active promoters                 in order to activate gene clusters in a heterologous host.
+                </p>
+            </div>
+            <div class="col-lg-6">
+                <p>Currently mCRISTAR is designed for use with a specific set of vectors and promoters. Gene clsuters are
+                    refactored in yeast and homolously expressed in Streptomyces Albus.</p>
+            </div>
+            <div class="col-lg-8 col-lg-offset-1 text-center">
+                <a href="#" class="btn btn-lg btn-outline">
+                    <i class="fa fa-download"></i> Download Theme
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

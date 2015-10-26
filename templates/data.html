@@ -1,0 +1,104 @@
+{% extends "layout.html" %}
+
+
+
+{% block data %}
+<!-- Data Section -->
+
+<section id="data">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <h2>Promoter Data</h2>
+                <hr>
+            </div>
+        </div>
+
+        <div class="row">
+            <h3> Selective Promoters</h3>
+            <table class="u-full-width">
+
+              <thead>
+                <tr>
+                  <th>Promoter ID</th>
+                  <th>Sequence</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for promoter in selective_promoters %}
+                <tr>
+                  <td> {{loop.index}} - {{promoter.id}} </td>
+                  <td>  {%- for feature in promoter.features -%}
+                            <span class="{{feature.type}}">
+                                {%- if feature.type == "LEU_AUX" -%}
+                                    LEUCINE AUXOTROPH
+                                {%- elif  feature.type == "MET_AUX" -%}
+                                    METHIONINE AUXOTROPH
+                                {%- else -%}
+                                    {{ feature.extract(promoter).seq|trim }}
+                                {% endif %}
+                            </span>
+                        {% endfor %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+
+        </div>
+
+        <div class="row">
+            <h3> Non-Selective Promoters</h3>
+            <table class="u-full-width">
+
+              <thead>
+                <tr>
+                  <th>Promoter ID</th>
+                  <th>Sequence</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for promoter in nonselective_promoters %}
+                <tr>
+                  <td> {{loop.index}} - {{promoter.id}} </td>
+                  <td>  {%- for feature in promoter.features -%}
+                        <span class=" {{feature.type}}">{{ feature.extract(promoter).seq|trim }}</span>
+                        {% endfor %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+
+        </div>
+
+
+         <div class="row">
+            <div class="col-lg-12 text-center">
+                <h2>Strain Data</h2>
+                <hr>
+                <h5>Yeast</h5>
+                <h5>Steptomyces Albus</h5>
+            </div>
+        </div>
+
+         <div class="row">
+            <div class="col-lg-12 text-center">
+                <h2>Vector Data</h2>
+                <hr>
+                <h5>pTARa</h5>
+                <h5>pCRCT </h5>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <h2>Auxotroph Strain Data</h2>
+                <hr>
+            </div>
+        </div>
+
+
+    </div>
+</section>
+{% endblock %}

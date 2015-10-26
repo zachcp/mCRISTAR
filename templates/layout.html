@@ -1,8 +1,142 @@
 <!doctype html>
-<title>CrisprFactor</title>
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
-<div class="page">
-  <h1>CrisprFactor</h1>
 
-  {% block body %}{% endblock %}
-</div>
+<title>mCristar: multiplexed CRISPR plus TAR</title>
+
+<head>
+<!-- JS -->
+<meta name="description" content="A webapp for refactoring biosynthetic gene clusters using Multiplexed CRISPR and TAR">
+<meta name="keywords" content="CRISPR, TAR, gene clusters">
+<meta name="author" content="zach charlop-powers">
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+
+
+<link href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css" rel="stylesheet" type="text/css"/>
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css">
+
+
+<!-- Bootstrap Core CSS - Uses Bootswatch Flatly Theme: http://bootswatch.com/flatly/ -->
+<link href="{{url_for('static', filename='css/bootstrap.min.css')}}" rel="stylesheet">
+
+<!-- Custom CSS -->
+<link href="{{url_for('static', filename='css/freelancer.css')}}" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/styles.css')}}">
+
+<!-- Custom Fonts -->
+<link href="{{url_for('static', filename='font-awesome/css/font-awesome.min.css')}}" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+
+</head>
+
+<body id="page-top" class="index">
+
+   <!-- Navigation -->
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="{{url_for('hello')}}">
+                    <font style="text-transform: lowercase;">m</font>CRISTAR
+                </a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="hidden">
+                        <a href="#page-top"></a>
+                    </li>
+
+                    <li class="page-scroll">
+                        <a href="{{url_for('hello')}}">About</a>
+                    </li>
+                    <li class="page-scroll">
+                        <a href="{{url_for('data')}}">Data</a>
+                    </li>
+
+                    <li class="page-scroll">
+                        <a href="{{url_for('refactor')}}">Refactor</a>
+                    </li>
+
+                </ul>
+            </div>
+            <!-- /.navbar-collapse -->
+        </div>
+        <!-- /.container-fluid -->
+    </nav>
+
+
+{% block header %}{% endblock %}
+{% block about %}{% endblock %}
+{% block refactor %}{% endblock %}
+{% block data %}{% endblock %}
+
+<!-- Footer -->
+<footer class="text-center">
+    <div class="footer-above">
+        <div class="container">
+            <div class="row">
+                <div class="footer-col col-md-6">
+                    <h3>Lab</h3>
+                    <p>A <a href="http://lab.rockefeller.edu/brady/">Brady Lab </a> Production</p>
+                </div>
+                <div class="footer-col col-md-6">
+                    <h3>Source Code</h3>
+                    <ul class="list-inline">
+                        <li>
+                            <a href="#" class="btn-social btn-outline"><i class="fa fa-fw fa-github"></i></a>
+                        </li>
+                        <li>
+                            <a href="#" class="btn-social btn-outline"><i class="fa fa-fw fa-github"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="footer-below">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    Copyright &copy; BradyLab 2015
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+    <!-- jQuery -->
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="{{url_for('static', filename='js/bootstrap.min.js')}}"></script>
+
+    <!-- Plugin JavaScript -->
+    <script src="{{url_for('static', filename='js/classie.js')}}"></script>
+    <script src="{{url_for('static', filename='js/cbpAnimatedHeader.js')}}"></script>
+    <script src="{{url_for('static', filename='js/customboxes.js')}}"></script>
+
+
+    <!-- Custom Theme JavaScript -->
+    <script src="{{url_for('static', filename='js/freelancer.js')}}"></script>
+
+   <!-- GA -->
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-58057161-3', 'auto');
+      ga('send', 'pageview');
+
+    </script>
+
+</body>
