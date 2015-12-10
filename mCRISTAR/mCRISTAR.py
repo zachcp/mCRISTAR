@@ -2,6 +2,7 @@
 
 #from __future__ import print_function
 import re
+from itertools import product
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
@@ -96,6 +97,123 @@ class mCRISTAR(object):
             crispr_cassettes.append(cassette)
 
         return crispr_cassettes
+
+
+class CassetteCheck(object):
+    """
+    Obtain a set of gap triplets (prot1, gap, prot2) and find all of the CRISPR sites within
+    each gap. Perform a series of checks to make sure that, when creating the cassettes,
+    there are not palindromic sequences added, not are there repeats..
+
+    """
+    def __init__(self, gaptriplets):
+        """
+
+        :return: mCRISTAR Object
+        """
+        self.gaps = gaptriplets
+        self.allcripsrsites = [find_crispr_sites_JSON(gap) for gap in self.gaps]
+        self.crisprcassettes = self.make_crispr_cassette(self.allcripsrsites)
+
+
+    def make_crispr_cassette(self, crisprsites):
+        """
+        :param crisprsites: a list of lists of crispr cutsite SeqRecords
+        :return: a crispr cassette that has been validated
+        """
+
+        crispr_groups = simplegrouper(crisprsites)
+        crispr_groups_checked = (choose_crisprsites(cgroup) for cgroup in crispr_groups)
+        crispr_cassettes = [make_cassete(crisprsites) for crisprsites in crispr_groups_checked]
+        return crispr_cassettes
+
+    def export(self):
+        return [processCrisprCassettes(cass) for cass in self.crisprcassettes]
+
+
+
+
+def choose_crisprsites(crisprgroup):
+    """
+
+    :param crisprgroup: a list of lists of possible crisprsites thate are intende dto be joined on a cassette
+    :return: list of CRISPR sites
+    """
+    #generator of all possible crispr combinations
+    allcrisprcombinations = product(*crisprgroup)
+
+    for candidate in allcrisprcombinations:
+        pass_palindromic = test_palindromic(candidate)
+        pass_extension = test_extension(candidate)
+        if pass_palindromic and pass_extension:
+            return candidate
+
+    raise ValueError("No Acceptable CRISPR combinations were found")
+
+def make_cassete(crisprsites):
+    "take validated sites and group them together"
+    for crisprs in crisprsites:
+        # need to obtain the features as follows:
+        # <- gateway 5p - {DR - crispr}x - DR - gateway 3p -->
+        clist = []
+        clist.append(gateway_5prime)
+
+        for idx, crispr in enumerate(crisprs):
+            if idx == 0:
+                clist.append(crispr)
+            else:
+                clist.append(crispr_DR)
+                clist.append(crispr)
+
+        clist.append(gateway_3prime)
+
+        # combine the list into a single seqrecord
+        cassette = reduce(lambda x,y: x+ y, clist)
+        # add filler sequences to the crisprcassete
+        cassette = fillfeatures(cassette)
+    return cassette
+
+def test_extension(crisprsites):
+    """
+    if the beginnings or ends of multiple crispr sites are the same, there will be long
+    repeast regions when added next to the Direct Repeat sequence. Check that the first two
+    and last two bases of all crispr sites are unique
+    """
+    site_count = len(crisprsites)
+    start_seqs = set([str(site[:2]) for site in crisprsites])
+    end_seqs = set([str(site[-2:]) for site in crisprsites])
+
+    if len(start_seqs) != site_count:
+        return False
+    if len(end_seqs) != site_count:
+        return False
+
+    return True
+
+def test_palindromic(crisprsites):
+    """
+    if the end of a crispr site is the RC of the next site,
+    the Direct Repeat will be extended. this has been a problem for
+    synthesizeing the repeats
+    """
+    accept = True
+
+    rcdict = {"A":"T",
+              "T":"A",
+              "C":"G",
+              "G":"C"}
+
+    for i,site in enumerate(crisprsites):
+        if i > 0:
+            seq1 = crisprsites[i-1]
+            seq2 = crisprsites[i]
+            seq1end = str(seq1[-1])
+            seq2start = str(seq2[1])
+            if seq1 == rcdict(seq2start):
+                accept = False
+
+    return accept
+
 
 
 def create_promoter_primers(seqfeatures, selective_promoters, nonselective_promoters, gbk, overlaplength):
@@ -468,19 +586,21 @@ def create_primerset_from_JSON(gapdata, promoter, overlaplength=40, selection=No
              "reverse": rp,
              "strandorientation": strand_orientation}
 
-def find_crispr_site_JSON(JSON_triplet):
+
+
+def find_crispr_sites_JSON(JSON_triplet):
     """
+    Take a JSON triplet and find all CRISPR sites within each gap
 
     :param seqfeat: a triplet of SequenceFeatures (prot1, gap, prot2)
     :param gbkfile:
-    :return: a SequenceRecord with a dingle feature
+    :return: a list of SequenceRecord with a single SeqFeature
     """
     #feature data
     seqstr   = JSON_triplet['gap']['sequence']
     seqstart = JSON_triplet['gap']['start']
     seqend   = JSON_triplet['gap']['end']
     assert(len(seqstr) >= 0)
-
 
     # keep track of crispr sites with a simple list of dictionaries
     crisprsites = []
@@ -499,25 +619,31 @@ def find_crispr_site_JSON(JSON_triplet):
         start, seq = match.start(), match.group(1)
         crisprsites.append({"start" : start, "strand": -1, "sequence": seq})
 
-    #choose a single crispr site closest to the middle
-    meanloc = len(seqstr)/2
-    def getdist(x):
-        return abs(meanloc - x['start'])
-    dists = map(getdist, crisprsites)
-    minindex = dists.index(min(dists))
-    crisprsite = crisprsites[minindex]
+    def noBSAIsite(seq):
+        if "GGTCTC" in seq:
+            return False
+        if "GAGACC" in seq:
+            return False
+        else:
+            return True
 
-    #convert crisprsite from a sequence feature to its own sequence record with a single feature
-    if crisprsite['strand'] == 1:
-        crisprsequence = crisprsite['sequence'][:-3]
-    elif crisprsite['strand'] == -1:
-        tempseq = Seq(crisprsite['sequence'][3:])
-        crisprsequence = str(tempseq.reverse_complement())
-    else:
-        raise ValueError("strand must be +1 or -1")
 
-    return SeqRecord(Seq(crisprsequence),
-                     features = [SeqFeature(FeatureLocation(0, len(crisprsequence)), type="crisprsite", strand=1)])
+    def create_crisprsite(crisprsite):
+        #convert crisprsite from a sequence feature to its own sequence record with a single feature
+        if crisprsite['strand'] == 1:
+            crisprsequence = crisprsite['sequence'][:-3]
+        elif crisprsite['strand'] == -1:
+            tempseq = Seq(crisprsite['sequence'][3:])
+            crisprsequence = str(tempseq.reverse_complement())
+        else:
+            raise ValueError("strand must be +1 or -1")
+
+        # check BSAI site
+        if noBSAIsite:
+            return SeqRecord(Seq(crisprsequence),
+                             features = [SeqFeature(FeatureLocation(0, len(crisprsequence)), type="crisprsite", strand=1)])
+
+    return [create_crisprsite(csite) for csite in crisprsites]
 
 
 def make_crispr_cassette(crisprsites,  arraysize):
