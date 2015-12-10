@@ -15,13 +15,12 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 from mCRISTAR.data import crisprspacer, selective_promoters, nonselective_promoters, SNP11, SNP12
-from mCRISTAR.mCRISTAR import mCRISTAR, get_gaps, find_crispr_site, create_promoter_primers, create_primerset
+from mCRISTAR.mCRISTAR import mCRISTAR, GBKProcessor, GapProcessor, get_gaps, find_crispr_site, create_promoter_primers, create_primerset, grouper, simplegrouper
 
 def fixname(filename):
     "alter a filename to correspond to the test directory"
     currentdir = os.path.dirname(os.path.realpath(__file__))
     return currentdir + "/" + filename
-
 
 
 ################################################################################
@@ -41,7 +40,7 @@ def test_testdata():
     assert( isinstance(gbk, SeqRecord))
 
 gbk = SeqIO.read(open(tetaramycin_file,'r'),"gb")
-cf = mCRISTAR(gbk, min_operon_dist=150)
+cf = GBKProcessor(gbk, min_operon_dist=150)
 
 
 ################################################################################
@@ -113,7 +112,8 @@ def test_crispr_cassettes():
     test the crispcassettes of the final data
     """
 
-    cf = mCRISTAR(gbk, min_operon_dist=150)
+    cf = GBKProcessor(gbk, min_operon_dist=150)
+
     cassettes = cf.crisprcassetes
 
     for cassette in cassettes:
@@ -299,6 +299,24 @@ def test_create_primerset_colinear_bidirectional():
     assert(primerset2['reverse'] == expected_primerset2['reverse'])
 
 
+
+def test_test_extenion():
+    """
+    if the beginnings or ends of multiple crispr sites are the same, there will be long
+    repeast regions when added next to the Direct Repeat sequence. Check that the first two
+    and last two bases of all crispr sites are unique
+    """
+    site_count = len(crisprsites)
+    start_seqs = set([str(site[:2]) for site in crisprsites])
+    end_seqs = set([str(site[-2:]) for site in crisprsites])
+
+    if len(start_seqs) != site_count:
+        return False
+    if len(end_seqs) != site_count:
+        return False
+
+    return True
+
 # def test_find_crispr_site():
 #     """
 #     be sure that crispr sites are the correct size and they are adjacent to a PAM sequence
@@ -327,3 +345,96 @@ def test_create_primerset_colinear_bidirectional():
 #             tempfeature = SeqFeature(FeatureLocation(pamstart,pamend), type="pamsite",strand=1)
 #             tempseq = str(tempfeature.extract(cf.gbk).seq)
 #             assert(tempseq == "CC")
+
+
+def test_simplegrouper():
+    """ test that the grouper function groups to ther correct level and
+     has the expected behcavior for the final group
+    """
+    l1 = [1]
+    l2 = [1,2]
+    l3 = [1,2,3]
+    l4 = [1,2,3,4]
+    l5 = [1,2,3,4,5]
+    l6 = [1,2,3,4,5,6]
+    l7 = [1,2,3,4,5,6,7]
+    assert(simplegrouper(l1) == [[1]])
+    assert(simplegrouper(l2) == [[1,2]])
+    assert(simplegrouper(l3) == [[1,2,3]])
+    assert(simplegrouper(l4) == [[1,2,3,4]])
+    assert(simplegrouper(l5) == [[1,2,3],[4,5]])
+    assert(simplegrouper(l6) == [[1,2,3], [4,5,6]])
+    assert(simplegrouper(l7) == [[1,2,3,4],[5,6,7]])
+
+
+def test_simplegrouper_lists():
+    """ test that the grouper function groups to ther correct level and
+     has the expected behcavior for the final group
+    """
+    l1 = [[1]]
+    l2 = [[1],[2]]
+    l3 = [[1],[2],[3]]
+    l4 = [[1],[2],[3],[4]]
+    l5 = [[1],[2],[3],[4],[5]]
+    l6 = [[1],[2],[3],[4],[5],[6]]
+    l7 = [[1],[2],[3],[4],[5],[6],[7]]
+    assert(simplegrouper(l1) == [[[1]]])
+    assert(simplegrouper(l2) == [[[1],[2]]])
+    assert(simplegrouper(l3) == [[[1],[2],[3]]])
+    assert(simplegrouper(l4) == [[[1],[2],[3],[4]]])
+    assert(simplegrouper(l5) == [[[1],[2],[3]],[[4],[5]]])
+    assert(simplegrouper(l6) == [[[1],[2],[3]], [[4],[5],[6]]])
+    assert(simplegrouper(l7) == [[[1],[2],[3],[4]],[[5],[6],[7]]])
+
+
+
+def test_grouper():
+    """ test that the grouper function groups to ther correct level and
+     has the expected behcavior for the final group
+    """
+    l1 = [1,2,3,4,5,6,7,8]
+    assert(grouper(l1,4) == [[1,2,3,4],[5,6,7,8]])
+    assert(grouper(l1,3) == [[1,2,3],[4,5,6],[7,8]])
+
+
+def test_fillfeatures():
+    """
+    test that the feature filling behavior is correct.
+
+    """
+    testrecord = SeqRecord(Seq("A"*10),
+                           features= [SeqFeature(FeatureLocation(0,4), type="CDS", strand=1),
+                                      SeqFeature(FeatureLocation(8,10), type="CDS",strand=1)])
+
+    assert(len(testrecord.features) == 2)
+
+    #test basic  addition
+    newrecord = fillfeatures(testrecord)
+    assert(len(newrecord.features) == 3)
+
+    #extract sequences and assert they are the same as the full length
+    seqs = [feat.extract(newrecord) for feat in newrecord.features]
+    seqsum = sum(len(s.seq) for s in seqs)
+    assert(seqsum == len(newrecord.seq))
+
+    #assert that extracted feature sequences, when added together are the same as the original sequence
+    seqs_text = [str(s.seq) for s in seqs]
+    assert("".join(seqs_text) == str(newrecord.seq))
+
+
+# def test_fillfeatures_on_crisprcassettes():
+#     """
+#     use the tetaramycin gene clusters as a test
+#     """
+#     for cassette in cf.crisprcassetes:
+#
+#     newrecord = fillfeatures(gbk)
+#
+#     #extract sequences and assert they are the same as the full length
+#     seqs = [feat.extract(newrecord) for feat in newrecord.features]
+#     seqsum = sum(len(s.seq) for s in seqs)
+#     assert(seqsum == len(newrecord.seq))
+#
+#     #assert that extracted feature sequences, when added together are the same as the original sequence
+#     seqs_text = [str(s.seq) for s in seqs]
+#     assert("".join(seqs_text) == str(newrecord.seq))
