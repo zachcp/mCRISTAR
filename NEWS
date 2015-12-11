@@ -1,0 +1,10 @@
+mCRISTAR News
+
+v2
+Add checks to improve ordrering: BSAI cut check,
+check cassettes for sequences that will cause repetitions
+with the DirectRepeat sequence, and sequences that will
+extend the DR palindrome.
+
+v1
+Initial Application
