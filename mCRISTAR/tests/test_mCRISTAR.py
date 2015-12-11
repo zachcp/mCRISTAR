@@ -14,8 +14,8 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation
-from mCRISTAR.data import crisprspacer, selective_promoters, nonselective_promoters, SNP11, SNP12
-from mCRISTAR.mCRISTAR import mCRISTAR, GBKProcessor, GapProcessor, get_gaps, find_crispr_site, create_promoter_primers, create_primerset, grouper, simplegrouper
+from ..data import crisprspacer, selective_promoters, nonselective_promoters, SNP11, SNP12
+from ..mCRISTAR import GBKProcessor, GapProcessor, get_gaps, grouper, simplegrouper, test_extension, fillfeatures
 
 def fixname(filename):
     "alter a filename to correspond to the test directory"
@@ -33,14 +33,14 @@ def fixname(filename):
 #
 #
 # Load Test Datafile
-tetaramycin_file = fixname("../data/clusters/Tetaramycin.gb")
+tetaramycin_file = fixname("../../data/clusters/Tetaramycin.gb")
 def test_testdata():
     "make sure our test data is available"
     gbk = SeqIO.read(open(tetaramycin_file,'r'),"gb")
     assert( isinstance(gbk, SeqRecord))
 
 gbk = SeqIO.read(open(tetaramycin_file,'r'),"gb")
-cf = GBKProcessor(gbk, min_operon_dist=150)
+cf = GBKProcessor(gbk)
 
 
 ################################################################################
@@ -300,22 +300,21 @@ def test_create_primerset_colinear_bidirectional():
 
 
 
-def test_test_extenion():
+def test_test_extension():
     """
     if the beginnings or ends of multiple crispr sites are the same, there will be long
     repeast regions when added next to the Direct Repeat sequence. Check that the first two
     and last two bases of all crispr sites are unique
     """
-    site_count = len(crisprsites)
-    start_seqs = set([str(site[:2]) for site in crisprsites])
-    end_seqs = set([str(site[-2:]) for site in crisprsites])
+    testlist1 = ["ACT","ACT","ACT"] # same seqs
+    testlist2 = ["ACT","CAT","GGG"] # different sets of first two and last two letters
+    testlist3 =  ["ACT","ACG","GTG"] # same first two letters of list
+    testlist4 =  ["ACT","GCT","GTG"] # same last two letters of list
 
-    if len(start_seqs) != site_count:
-        return False
-    if len(end_seqs) != site_count:
-        return False
-
-    return True
+    assert(test_extension(testlist1) == False)
+    assert(test_extension(testlist2) == True)
+    assert(test_extension(testlist3) == False)
+    assert(test_extension(testlist4) == False)
 
 # def test_find_crispr_site():
 #     """

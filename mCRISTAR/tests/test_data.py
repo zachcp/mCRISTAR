@@ -3,13 +3,13 @@
 from os.path import dirname,realpath
 from Bio import SeqIO
 
-from mCRISTAR.data import SP04, SP05, SP06, SP10, SP12, SP13, SP14, SP15, SP16, SP17, SP18, SP19, SP21, SP23
-from mCRISTAR.data import RBS04, RBS05, RBS06, RBS07, RBS08, RBS09,RBS10,RBS11,RBS12,RBS13,RBS14,RBS15,RBS16,RBS17,RBS18
-from mCRISTAR.data import insSP04,insSP05,insSP06,insSP10,insSP12,insSP13,insSP14,insSP15,insSP16,insSP17,insSP18,insSP19,insSP21,insSP23
-from mCRISTAR.data import SNP11,SNP12,SNP13,SNP14,SNP15,SNP16,SNP17
-from mCRISTAR.data import selective_promoters, nonselective_promoters
-from mCRISTAR.data import leu, met
-from mCRISTAR.data import crispr_DR, gateway_5prime,gateway_3prime
+from ..data import SP04, SP05, SP06, SP10, SP12, SP13, SP14, SP15, SP16, SP17, SP18, SP19, SP21, SP23
+from ..data import RBS04, RBS05, RBS06, RBS07, RBS08, RBS09,RBS10,RBS11,RBS12,RBS13,RBS14,RBS15,RBS16,RBS17,RBS18
+from ..data import insSP04,insSP05,insSP06,insSP10,insSP12,insSP13,insSP14,insSP15,insSP16,insSP17,insSP18,insSP19,insSP21,insSP23
+from ..data import SNP11,SNP12,SNP13,SNP14,SNP15,SNP16,SNP17
+from ..data import selective_promoters, nonselective_promoters
+from ..data import leu, met
+from ..data import crispr_DR, gateway_5prime,gateway_3prime
 
 
 promoters = [SP04, SP05, SP06, SP10, SP12, SP13, SP14, SP15, SP16, SP17, SP18, SP19, SP21, SP23]
@@ -22,8 +22,8 @@ def test_selective_sequences():
     test that GB files in data directory are faithful to the manaual sequence in crisprfactor.data.py
     """
     crisprfactordir = dirname(realpath(__file__))
-    leucine_gb = crisprfactordir + "/../data/resistancecassettes/1_LEU2.gb"
-    methionine_gb = crisprfactordir + "/../data/resistancecassettes/2_MET15.gb"
+    leucine_gb = crisprfactordir + "/../../data/resistancecassettes/1_LEU2.gb"
+    methionine_gb = crisprfactordir + "/../../data/resistancecassettes/2_MET15.gb"
     leu2 = SeqIO.read(leucine_gb,"gb")
     met15 = SeqIO.read(methionine_gb,"gb")
     assert(str(leu2.seq) == str(leu.seq))

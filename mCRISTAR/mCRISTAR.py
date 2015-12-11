@@ -127,6 +127,7 @@ def test_extension(crisprsites):
 
     return True
 
+
 def test_palindromic(crisprsites):
     """
     if the end of a crispr site is the RC of the next site,
