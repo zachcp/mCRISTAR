@@ -84,8 +84,8 @@ def test_basic_GapProcessor():
 #  Tests Support Functions
 def test_get_gap():
     "make sure gaps are the correct size, return SeqFeatures, and are the correct distance apart"
-    gaps_150 = get_gaps(gbk, 150, maximum_cuts=100)
-    gaps_200 = get_gaps(gbk, 200, maximum_cuts=100)
+    gaps_150 = get_gaps(gbk, 150)
+    gaps_200 = get_gaps(gbk, 200)
 
     # check length
     assert(len(gaps_150)== 6)
@@ -139,20 +139,15 @@ def test_crispr_cassettes():
     test the crispcassettes of the final data
     """
 
-    cf = GBKProcessor(gbk, min_operon_dist=150)
-
-    cassettes = cf.crisprcassetes
+    gapProcessor = GapProcessor(gbkProcessor.export()['gaps'][:7])
+    cassettes = gapProcessor.export()['cassettes']
 
     for cassette in cassettes:
-        features = cassette.features
-        feature_seqs = [str(f.extract(cassette).seq) for f in features]
-        #assert that features, when added together are the same as the full feature
-        assert("".join(feature_seqs) == str(cassette.seq))
-
+        featuretypes = [feat['type'] for feat in cassette]
         #assert two BSA sites, two cut sites, and a minimum of one crispr cut site
-        assert(len([f for f in features if f.type == "BSAI Recognition"]) == 2)
-        assert(len([f for f in features if f.type == "BSAI Cut Site"]) == 2)
-        assert(len([f for f in features if f.type == "crisprsite"]) >= 1)
+        assert(len([f for f in featuretypes if f == "BSAI_Recognition"]) == 2)
+        assert(len([f for f in featuretypes if f == "BSAI_Cut_Site"]) == 2)
+        assert(len([f for f in featuretypes if f == "crisprsite"]) >= 1)
 
 
 def test_promoter_primers():
