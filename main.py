@@ -8,7 +8,7 @@ from Bio import SeqIO
 from flask import Flask, render_template, request
 
 from mCRISTAR.data import selective_promoters, nonselective_promoters
-from mCRISTAR.mCRISTAR import mCRISTAR, CassetteCheck, find_crispr_site_JSON, create_promoter_primers_from_JSON, make_crispr_cassette, get_gaps, processGBK, processGaps, processCrisprCassettes
+from mCRISTAR.mCRISTAR import mCRISTAR, GapProcessor, find_crispr_sites_JSON, create_promoter_primers_from_JSON, make_crispr_cassette, get_gaps, processGBK, processGaps, processCrisprCassettes
 
 app = Flask(__name__)
 
@@ -44,11 +44,8 @@ def makecassettes():
     gapdata = request.json['gaps']
 
     #find crisprsites and create primers
-    cassetes = CassetteCheck(gapdata)
-    primers = create_promoter_primers_from_JSON(gapdata, selective_promoters, nonselective_promoters, overlaplegth=40)
-
-    return json.dumps({"casscass_dataass_data,
-                       "primers":primers})
+    cassetes = GapProcessor(gapdata)
+    return json.dumps(cassetes.export())
 
 
 @app.errorhandler(404)

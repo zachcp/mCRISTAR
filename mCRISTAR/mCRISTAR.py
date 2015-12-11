@@ -99,11 +99,17 @@ class mCRISTAR(object):
         return crispr_cassettes
 
 
-class CassetteCheck(object):
+class GapProcessor(object):
     """
-    Obtain a set of gap triplets (prot1, gap, prot2) and find all of the CRISPR sites within
+    Obtain a set of gap triplets (prot1, gap, prot2).
+
+    1. Find all of the CRISPR sites within
     each gap. Perform a series of checks to make sure that, when creating the cassettes,
-    there are not palindromic sequences added, not are there repeats..
+    there are not palindromic sequences added and there are not repeats.
+
+    2. Create the bridge primers for the gaps
+
+    3. Return a json-compatible dicitonary of the cassettes and primers
 
     """
     def __init__(self, gaptriplets):
@@ -112,9 +118,12 @@ class CassetteCheck(object):
         :return: mCRISTAR Object
         """
         self.gaps = gaptriplets
-        self.allcripsrsites = [find_crispr_sites_JSON(gap) for gap in self.gaps]
-        self.crisprcassettes = self.make_crispr_cassette(self.allcripsrsites)
-
+        self.allcrisprsites = [find_crispr_sites_JSON(gap) for gap in self.gaps]
+        self.crisprcassettes = self.make_crispr_cassette(self.allcrisprsites)
+        self.primers =  create_promoter_primers_from_JSON(self.gaps,
+                                                          selective_promoters,
+                                                          nonselective_promoters,
+                                                          overlaplength=40)
 
     def make_crispr_cassette(self, crisprsites):
         """
@@ -122,24 +131,24 @@ class CassetteCheck(object):
         :return: a crispr cassette that has been validated
         """
 
-        crispr_groups = simplegrouper(crisprsites)
-        crispr_groups_checked = (choose_crisprsites(cgroup) for cgroup in crispr_groups)
-        crispr_cassettes = [make_cassete(crisprsites) for crisprsites in crispr_groups_checked]
+        #return a group of groups
+        cassette_groups = simplegrouper(crisprsites)
+        cassette_groups_checked = (choose_crisprsites(cgroup) for cgroup in cassette_groups)
+        crispr_cassettes = [make_cassete(crisprsites) for crisprsites in cassette_groups_checked]
         return crispr_cassettes
 
     def export(self):
-        return [processCrisprCassettes(cass) for cass in self.crisprcassettes]
-
+        return {"cassettes": [processCrisprCassettes(cass) for cass in self.crisprcassettes],
+                "primers": self.primers}
 
 
 
 def choose_crisprsites(crisprgroup):
     """
-
-    :param crisprgroup: a list of lists of possible crisprsites thate are intende dto be joined on a cassette
-    :return: list of CRISPR sites
+    :param crisprgroup: a list of lists of possible crisprsites thate are intended to be joined on a cassette
+    :return: tuple of CRISPR sites
     """
-    #generator of all possible crispr combinations
+    #generator of all possible crispr combinations as a list
     allcrisprcombinations = product(*crisprgroup)
 
     for candidate in allcrisprcombinations:
@@ -152,25 +161,24 @@ def choose_crisprsites(crisprgroup):
 
 def make_cassete(crisprsites):
     "take validated sites and group them together"
-    for crisprs in crisprsites:
-        # need to obtain the features as follows:
-        # <- gateway 5p - {DR - crispr}x - DR - gateway 3p -->
-        clist = []
-        clist.append(gateway_5prime)
+    # need to obtain the features as follows:
+    # <- gateway 5p - {DR - crispr}x - DR - gateway 3p -->
+    clist = []
+    clist.append(gateway_5prime)
 
-        for idx, crispr in enumerate(crisprs):
-            if idx == 0:
-                clist.append(crispr)
-            else:
-                clist.append(crispr_DR)
-                clist.append(crispr)
+    for idx, crispr in enumerate(crisprsites):
+        if idx == 0:
+            clist.append(crispr)
+        else:
+            clist.append(crispr_DR)
+            clist.append(crispr)
 
-        clist.append(gateway_3prime)
+    clist.append(gateway_3prime)
 
-        # combine the list into a single seqrecord
-        cassette = reduce(lambda x,y: x+ y, clist)
-        # add filler sequences to the crisprcassete
-        cassette = fillfeatures(cassette)
+    # combine the list into a single seqrecord
+    cassette = reduce(lambda x,y: x+ y, clist)
+    # add filler sequences to the crisprcassete
+    cassette = fillfeatures(cassette)
     return cassette
 
 def test_extension(crisprsites):
@@ -209,7 +217,7 @@ def test_palindromic(crisprsites):
             seq2 = crisprsites[i]
             seq1end = str(seq1[-1])
             seq2start = str(seq2[1])
-            if seq1 == rcdict(seq2start):
+            if seq1 == rcdict[seq2start]:
                 accept = False
 
     return accept

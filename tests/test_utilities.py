@@ -7,7 +7,7 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 
-from test_mCRISTAR import gbk, cf
+#from test_mCRISTAR import gbk, cf
 
 
 def test_simplegrouper():
@@ -21,13 +21,34 @@ def test_simplegrouper():
     l5 = [1,2,3,4,5]
     l6 = [1,2,3,4,5,6]
     l7 = [1,2,3,4,5,6,7]
-    assert(grouper(l1) == [[1]])
-    assert(grouper(l2) == [[1,2]])
-    assert(grouper(l3) == [[1,2,3]])
-    assert(grouper(l4) == [[1,2,3,4]])
-    assert(grouper(l5) == [[1,2,3],[4,5]])
-    assert(grouper(l6) == [[1,2,3], [4,5,6]])
-    assert(grouper(l7) == [[1,2,3,4],[5,6,7,8]])
+    assert(simplegrouper(l1) == [[1]])
+    assert(simplegrouper(l2) == [[1,2]])
+    assert(simplegrouper(l3) == [[1,2,3]])
+    assert(simplegrouper(l4) == [[1,2,3,4]])
+    assert(simplegrouper(l5) == [[1,2,3],[4,5]])
+    assert(simplegrouper(l6) == [[1,2,3], [4,5,6]])
+    assert(simplegrouper(l7) == [[1,2,3,4],[5,6,7]])
+
+
+def test_simplegrouper_lists():
+    """ test that the grouper function groups to ther correct level and
+     has the expected behcavior for the final group
+    """
+    l1 = [[1]]
+    l2 = [[1],[2]]
+    l3 = [[1],[2],[3]]
+    l4 = [[1],[2],[3],[4]]
+    l5 = [[1],[2],[3],[4],[5]]
+    l6 = [[1],[2],[3],[4],[5],[6]]
+    l7 = [[1],[2],[3],[4],[5],[6],[7]]
+    assert(simplegrouper(l1) == [[[1]]])
+    assert(simplegrouper(l2) == [[[1],[2]]])
+    assert(simplegrouper(l3) == [[[1],[2],[3]]])
+    assert(simplegrouper(l4) == [[[1],[2],[3],[4]]])
+    assert(simplegrouper(l5) == [[[1],[2],[3]],[[4],[5]]])
+    assert(simplegrouper(l6) == [[[1],[2],[3]], [[4],[5],[6]]])
+    assert(simplegrouper(l7) == [[[1],[2],[3],[4]],[[5],[6],[7]]])
+
 
 
 def test_grouper():
