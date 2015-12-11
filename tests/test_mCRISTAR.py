@@ -299,6 +299,24 @@ def test_create_primerset_colinear_bidirectional():
     assert(primerset2['reverse'] == expected_primerset2['reverse'])
 
 
+
+def test_test_extenion():
+    """
+    if the beginnings or ends of multiple crispr sites are the same, there will be long
+    repeast regions when added next to the Direct Repeat sequence. Check that the first two
+    and last two bases of all crispr sites are unique
+    """
+    site_count = len(crisprsites)
+    start_seqs = set([str(site[:2]) for site in crisprsites])
+    end_seqs = set([str(site[-2:]) for site in crisprsites])
+
+    if len(start_seqs) != site_count:
+        return False
+    if len(end_seqs) != site_count:
+        return False
+
+    return True
+
 # def test_find_crispr_site():
 #     """
 #     be sure that crispr sites are the correct size and they are adjacent to a PAM sequence

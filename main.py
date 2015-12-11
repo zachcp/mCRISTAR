@@ -8,7 +8,7 @@ from Bio import SeqIO
 from flask import Flask, render_template, request
 
 from mCRISTAR.data import selective_promoters, nonselective_promoters
-from mCRISTAR.mCRISTAR import mCRISTAR, GapProcessor, find_crispr_sites_JSON, create_promoter_primers_from_JSON, make_crispr_cassette, get_gaps, processGBK, processGaps, processCrisprCassettes
+from mCRISTAR.mCRISTAR import GBKProcessor, GapProcessor
 
 app = Flask(__name__)
 
@@ -26,24 +26,20 @@ def data():
 def refactor():
     return render_template('refactor.html')
 
-
 @app.route("/upload", methods=["GET","POST"])
 def upload():
+    "upload and process the GBK file"
     upload_file = request.files["file"]
     genbank_string = upload_file.read()
     gb_stringhandle = StringIO.StringIO(genbank_string)
     gbk = SeqIO.read(gb_stringhandle,"gb")
-    gaps = get_gaps(gbk=gbk, mindist=50)
-    gaps = processGaps(gaps=gaps, gbk=gbk)
-    genes = processGBK(gbk)
-    return json.dumps({"genes":genes,
-                       "gaps":gaps})
+    gbP = GBKProcessor(gbk)
+    return json.dumps(gbP.export())
 
 @app.route("/makecassettes", methods=["GET","POST"])
 def makecassettes():
+    "find crisprsites and create primers"
     gapdata = request.json['gaps']
-
-    #find crisprsites and create primers
     cassetes = GapProcessor(gapdata)
     return json.dumps(cassetes.export())
 

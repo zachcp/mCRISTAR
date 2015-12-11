@@ -10,93 +10,110 @@ from Bio.SeqFeature import SeqFeature, FeatureLocation
 from utilities import grouper, fillfeatures, simplegrouper
 from data import crisprspacer, selective_promoters, nonselective_promoters, gateway_3prime, gateway_5prime, crispr_DR
 
-class mCRISTAR(object):
+# class mCRISTAR(object):
+#     """
+#     The main CrispFactor object. This object
+#      1. Designs the CRISP Constructs
+#             1. Keeps track of the genes
+#             2. Calculates the intervals to target CRISPR
+#             3. Checks for Alt Cut Sites on CRISPR
+#             4. Designs the CRISPR Casettes
+#
+#      2. Designs the Recombination Cassettes
+#             1. Find Genes flanking CRISPR Cuts
+#             2. Design Primer Overhangs for generating the "bridge" priemrs
+#
+#      3. Outputs a tabular report of CRISPR Sites, Rcombination Casseettes.
+#         Alt: output Interactive SVG of the process.
+#
+#     """
+#     def __init__(self, gbk_file, min_operon_dist, overlaplength=40, maximum_cuts=7, crisprspacer = crisprspacer):
+#         """
+#
+#         :return: mCRISTAR Object
+#         """
+#         if isinstance(gbk_file, str):
+#             self.gbk = SeqIO.read(gbk_file,"gb")
+#         elif isinstance(gbk_file, SeqRecord):
+#             self.gbk = gbk_file
+#         else:
+#             raise(ValueError("gbk value may only be a filename or a SeqRecord"))
+#
+#         self.overlaplength = overlaplength
+#         self.min_operon_dist = min_operon_dist
+#         self.maximum_cuts = maximum_cuts
+#         self.crisprspacer = crisprspacer
+#         self.selective_promoters = selective_promoters
+#         self.nonselective_promoters = nonselective_promoters
+#         self.gaps = get_gaps(gbk=self.gbk,
+#                              mindist=self.min_operon_dist,
+#                              maximum_cuts=self.maximum_cuts)
+#         self.crisprsites = map(self.get_crispr_sites, self.gaps)
+#         self.crisprcassetes = self.make_crispr_cassette(crisprsites = self.crisprsites,
+#                                                         gbk=self.gbk,
+#                                                         arraysize=4)
+#         self.bridgeprimers = create_promoter_primers(seqfeatures = self.gaps,
+#                                                      selective_promoters = self.selective_promoters,
+#                                                      nonselective_promoters = self.nonselective_promoters,
+#                                                      gbk = self.gbk,
+#                                                      overlaplength= self.overlaplength)
+#
+#         assert(len(self.gaps) == len(self.crisprsites) == len(self.bridgeprimers))
+#         #assert(len(self.crisprcassetes) ==  (len(self.gaps)/4) + 1)
+#
+#     def get_crispr_sites(self, gap):
+#         return find_crispr_site(gap, gbk=self.gbk)
+#
+#     def make_crispr_cassette(self, crisprsites, gbk, arraysize):
+#         """
+#         group CRISPR sequences for use in the cassette. Currently only
+#         four cuts are possible per cassete with a total of 7 promoter combinations.
+#
+#         rep-seq1-rep-seq2-rep-seq3-rep-seq4-rep
+#
+#         """
+#         crispr_groups = grouper(crisprsites,arraysize)
+#
+#         crispr_cassettes = []
+#         for crisprs in crispr_groups:
+#             # need to obtain the features as follows:
+#             # <- gateway 5p - {DR - crispr}x - DR - gateway 3p -->
+#             clist = []
+#             clist.append(gateway_5prime)
+#
+#             for idx, crispr in enumerate(crisprs):
+#                 if idx == 0:
+#                     clist.append(crispr)
+#                 else:
+#                     clist.append(crispr_DR)
+#                     clist.append(crispr)
+#
+#             clist.append(gateway_3prime)
+#
+#             # combine the list into a single seqrecord
+#             cassette = reduce(lambda x,y: x+ y, clist)
+#             # add filler sequences to the crisprcassete
+#             cassette = fillfeatures(cassette)
+#             crispr_cassettes.append(cassette)
+#
+#         return crispr_cassettes
+
+class GBKProcessor(object):
     """
-    The main CrispFactor object. This object
-     1. Designs the CRISP Constructs
-            1. Keeps track of the genes
-            2. Calculates the intervals to target CRISPR
-            3. Checks for Alt Cut Sites on CRISPR
-            4. Designs the CRISPR Casettes
-
-     2. Designs the Recombination Cassettes
-            1. Find Genes flanking CRISPR Cuts
-            2. Design Primer Overhangs for generating the "bridge" priemrs
-
-     3. Outputs a tabular report of CRISPR Sites, Rcombination Casseettes.
-        Alt: output Interactive SVG of the process.
-
+    Handle the processing of the GBK file.
     """
-    def __init__(self, gbk_file, min_operon_dist, overlaplength=40, maximum_cuts=7, crisprspacer = crisprspacer):
+    def __init__(self, gbk):
         """
 
         :return: mCRISTAR Object
         """
-        if isinstance(gbk_file, str):
-            self.gbk = SeqIO.read(gbk_file,"gb")
-        elif isinstance(gbk_file, SeqRecord):
-            self.gbk = gbk_file
-        else:
-            raise(ValueError("gbk value may only be a filename or a SeqRecord"))
+        self.gaps = get_gaps(gbk=gbk, mindist=50)
+        self.processedGaps = processGaps(gaps=self.gaps, gbk=self.gbk)
+        self.genes = processGBK(gbk)
 
-        self.overlaplength = overlaplength
-        self.min_operon_dist = min_operon_dist
-        self.maximum_cuts = maximum_cuts
-        self.crisprspacer = crisprspacer
-        self.selective_promoters = selective_promoters
-        self.nonselective_promoters = nonselective_promoters
-        self.gaps = get_gaps(gbk=self.gbk,
-                             mindist=self.min_operon_dist,
-                             maximum_cuts=self.maximum_cuts)
-        self.crisprsites = map(self.get_crispr_sites, self.gaps)
-        self.crisprcassetes = self.make_crispr_cassette(crisprsites = self.crisprsites,
-                                                        gbk=self.gbk,
-                                                        arraysize=4)
-        self.bridgeprimers = create_promoter_primers(seqfeatures = self.gaps,
-                                                     selective_promoters = self.selective_promoters,
-                                                     nonselective_promoters = self.nonselective_promoters,
-                                                     gbk = self.gbk,
-                                                     overlaplength= self.overlaplength)
-
-        assert(len(self.gaps) == len(self.crisprsites) == len(self.bridgeprimers))
-        #assert(len(self.crisprcassetes) ==  (len(self.gaps)/4) + 1)
-
-    def get_crispr_sites(self, gap):
-        return find_crispr_site(gap, gbk=self.gbk)
-
-    def make_crispr_cassette(self, crisprsites, gbk, arraysize):
-        """
-        group CRISPR sequences for use in the cassette. Currently only
-        four cuts are possible per cassete with a total of 7 promoter combinations.
-
-        rep-seq1-rep-seq2-rep-seq3-rep-seq4-rep
-
-        """
-        crispr_groups = grouper(crisprsites,arraysize)
-
-        crispr_cassettes = []
-        for crisprs in crispr_groups:
-            # need to obtain the features as follows:
-            # <- gateway 5p - {DR - crispr}x - DR - gateway 3p -->
-            clist = []
-            clist.append(gateway_5prime)
-
-            for idx, crispr in enumerate(crisprs):
-                if idx == 0:
-                    clist.append(crispr)
-                else:
-                    clist.append(crispr_DR)
-                    clist.append(crispr)
-
-            clist.append(gateway_3prime)
-
-            # combine the list into a single seqrecord
-            cassette = reduce(lambda x,y: x+ y, clist)
-            # add filler sequences to the crisprcassete
-            cassette = fillfeatures(cassette)
-            crispr_cassettes.append(cassette)
-
-        return crispr_cassettes
+    def export(self):
+        return {"genes": self.genes,
+                "gaps": self.processedGaps}
 
 
 class GapProcessor(object):
