@@ -10,12 +10,13 @@ Tests for `crisprfactor` module.
 
 import os
 import re
+import pytest
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 from ..data import crisprspacer, selective_promoters, nonselective_promoters, SNP11, SNP12
-from ..mCRISTAR import GBKProcessor, GapProcessor, get_gaps, grouper, simplegrouper, test_extension, fillfeatures
+from ..mCRISTAR import GBKProcessor, GapProcessor, get_gaps, grouper, simplegrouper, confirm_extension, fillfeatures
 
 def fixname(filename):
     "alter a filename to correspond to the test directory"
@@ -40,7 +41,33 @@ def test_testdata():
     assert( isinstance(gbk, SeqRecord))
 
 gbk = SeqIO.read(open(tetaramycin_file,'r'),"gb")
-cf = GBKProcessor(gbk)
+gbkProcessor = GBKProcessor(gbk)
+
+
+def test_GBKProcessor():
+    "Basic test to load a GBK file and test the shape of the output"
+    data = gbkProcessor.export()
+    genedata = data['genes']
+    gapdata = data['gaps']
+
+    assert(set(data.keys()) == set(['genes','gaps']))
+    assert(set(genedata[0].keys()) == set(['start', 'selected', 'end', 'id', 'strand']))
+    assert(set(gapdata[0].keys()) == set(['selected', 'protein2', 'id', 'protein1', 'gap']))
+
+
+def test_basic_GapProcessor():
+    "Test Basic GapPRocessor Input and Data Structure"
+    # if you submit greater than 7 gaps a value error it raised
+    with pytest.raises(ValueError):
+        GapProcessor(gbkProcessor.export()['gaps'])
+
+    gapProcessor = GapProcessor(gbkProcessor.export()['gaps'][:7])
+    gpExport = gapProcessor.export()
+    assert(set(gpExport.keys()) == set(['primers', 'cassettes']))
+    #primers are list of dictionaries
+    assert(set(gpExport['primers'][0].keys()) == set(['forward', 'strandorientation', 'selection', 'reverse', 'promoterid']))
+    #cassettes are list of lists of dictionaries
+    assert(set(gpExport['cassettes'][0][0].keys()) == set(['start', 'type', 'end', 'sequence']))
 
 
 ################################################################################
@@ -311,10 +338,10 @@ def test_test_extension():
     testlist3 =  ["ACT","ACG","GTG"] # same first two letters of list
     testlist4 =  ["ACT","GCT","GTG"] # same last two letters of list
 
-    assert(test_extension(testlist1) == False)
-    assert(test_extension(testlist2) == True)
-    assert(test_extension(testlist3) == False)
-    assert(test_extension(testlist4) == False)
+    assert(confirm_extension(testlist1) == False)
+    assert(confirm_extension(testlist2) == True)
+    assert(confirm_extension(testlist3) == False)
+    assert(confirm_extension(testlist4) == False)
 
 # def test_find_crispr_site():
 #     """

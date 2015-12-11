@@ -81,8 +81,8 @@ def choose_crisprsites(crisprgroup):
     allcrisprcombinations = product(*crisprgroup)
 
     for candidate in allcrisprcombinations:
-        pass_palindromic = test_palindromic(candidate)
-        pass_extension = test_extension(candidate)
+        pass_palindromic = confirm_nonpalindromic(candidate)
+        pass_extension = confirm_extension(candidate)
         if pass_palindromic and pass_extension:
             return candidate
 
@@ -110,7 +110,7 @@ def make_cassete(crisprsites):
     cassette = fillfeatures(cassette)
     return cassette
 
-def test_extension(crisprsites):
+def confirm_extension(crisprsites):
     """
     if the beginnings or ends of multiple crispr sites are the same, there will be long
     repeast regions when added next to the Direct Repeat sequence. Check that the first two
@@ -128,7 +128,7 @@ def test_extension(crisprsites):
     return True
 
 
-def test_palindromic(crisprsites):
+def confirm_nonpalindromic(crisprsites):
     """
     if the end of a crispr site is the RC of the next site,
     the Direct Repeat will be extended. this has been a problem for
