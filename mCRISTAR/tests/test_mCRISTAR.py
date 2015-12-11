@@ -16,7 +16,7 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 from ..data import crisprspacer, selective_promoters, nonselective_promoters, SNP11, SNP12
-from ..mCRISTAR import GBKProcessor, GapProcessor, get_gaps, grouper, simplegrouper, confirm_extension, fillfeatures, create_primerset_from_JSON
+from ..mCRISTAR import GBKProcessor, GapProcessor, get_gaps, grouper, simplegrouper, confirm_extension, fillfeatures, create_primerset_from_JSON, confirm_nonpalindromic
 
 def fixname(filename):
     "alter a filename to correspond to the test directory"
@@ -395,13 +395,28 @@ def test_confirm_extension():
     """
     testlist1 = ["ACT","ACT","ACT"] # same seqs
     testlist2 = ["ACT","CAT","GGG"] # different sets of first two and last two letters
-    testlist3 =  ["ACT","ACG","GTG"] # same first two letters of list
-    testlist4 =  ["ACT","GCT","GTG"] # same last two letters of list
+    testlist3 = ["ACT","ACG","GTG"] # same first two letters of list
+    testlist4 = ["ACT","GCT","GTG"] # same last two letters of list
+    testlist5 = ['CACGCTAAAGTCCGCCACCT','CATTTTTGTTTCATCGCGAC','GTCGACTGTCAAGGGAAAAC','GCTACGCGGAGCACAACGGC']
+
 
     assert(confirm_extension(testlist1) == False)
     assert(confirm_extension(testlist2) == True)
     assert(confirm_extension(testlist3) == False)
     assert(confirm_extension(testlist4) == False)
+    assert(confirm_extension(testlist5) == False)
+
+def test_confirm_nonpalindromic():
+    """
+    if the end of a crispr site is the RC of the next site,
+    the Direct Repeat will be extended. this has been a problem for
+    synthesizeing the repeats
+    """
+    testlist1 = ["AAAAT", "AAAAA"] #last letter of 1 is same as RC of frst letter
+    testlist2 = ["AAAAA", "AAAAA"] #last letter of 1 is same as RC of frst letter
+    assert(confirm_nonpalindromic(testlist1) == False)
+    assert(confirm_nonpalindromic(testlist2) == True)
+
 
 # def test_find_crispr_site():
 #     """

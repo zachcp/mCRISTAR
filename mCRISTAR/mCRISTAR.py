@@ -147,7 +147,7 @@ def confirm_nonpalindromic(crisprsites):
             seq2 = crisprsites[i]
             seq1end = str(seq1[-1])
             seq2start = str(seq2[1])
-            if seq1 == rcdict[seq2start]:
+            if seq1end == rcdict[seq2start]:
                 accept = False
 
     return accept
@@ -389,7 +389,6 @@ def find_crispr_sites_JSON(JSON_triplet):
                              features = [SeqFeature(FeatureLocation(0, len(crisprsequence)), type="crisprsite", strand=1)])
 
     return [create_crisprsite(csite) for csite in crisprsites]
-
 
 
 def processGBK(gbk):
