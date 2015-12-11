@@ -16,7 +16,7 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 from ..data import crisprspacer, selective_promoters, nonselective_promoters, SNP11, SNP12
-from ..mCRISTAR import GBKProcessor, GapProcessor, get_gaps, grouper, simplegrouper, confirm_extension, fillfeatures
+from ..mCRISTAR import GBKProcessor, GapProcessor, get_gaps, grouper, simplegrouper, confirm_extension, fillfeatures, create_primerset_from_JSON
 
 def fixname(filename):
     "alter a filename to correspond to the test directory"
@@ -179,37 +179,61 @@ def test_create_primerset_colinear_right():
 
 
     """
-    fakegbk = SeqRecord(Seq("A"*150),
-                features = [SeqFeature(FeatureLocation(1, 50), type="CDS", strand=1),
-                            SeqFeature(FeatureLocation(100, 150), type="CDS", strand=1)])
-
+    # fakegbk = SeqRecord(Seq("A"*150),
+    #             features = [SeqFeature(FeatureLocation(1, 50), type="CDS", strand=1),
+    #                         SeqFeature(FeatureLocation(100, 150), type="CDS", strand=1)])
+    fakegapdata = {'protein1': {'start': 1,
+                        'end': 50,
+                        'strand': 1,
+                        'sequence': "A"*50},
+           'gap':      {'start': 51,
+                        'end': 99,
+                        'strand': 1,
+                        'sequence': "A"*50},
+           'protein2': {'start': 100,
+                        'end': 150,
+                        'strand': 1,
+                        'sequence': "A"*50},
+           'id': 0,
+           'selected': 'true'}
     #test selective
-    primerset1 = create_primerset(prot1=fakegbk.features[0], prot2=fakegbk.features[1],
-                                  gbk=fakegbk, promoter=selective_promoters[0],
-                                  selection=True, overlaplength=10)
+    # primerset1 = create_primerset(prot1=fakegbk.features[0], prot2=fakegbk.features[1],
+    #                               gbk=fakegbk, promoter=selective_promoters[0],
+    #                               selection=True, overlaplength=10)
+    primerset1 = create_primerset_from_JSON(gapdata = fakegapdata,
+                                    promoter = selective_promoters[0],
+                                    selection=True,
+                                    overlaplength=10)
 
     expected_primerset1 = {"selection": True,
                            "forward": "A" * 10 + "TCGACGGTCGAGGAGAAC", # beginning of Leu
                            "reverse": "T" * 10 + "TAATTCACCTCCTGAGGC", # end of SNP11
+                           "promoterid": "SNP11",
                            "strandorientation": "sright"}
 
-    assert(primerset1.keys() == expected_primerset1.keys())
+    assert(set(primerset1.keys()) == set(expected_primerset1.keys()))
     assert(primerset1['strandorientation'] == expected_primerset1['strandorientation'])
     assert(primerset1['selection'] == expected_primerset1['selection'])
     assert(primerset1['forward'] == expected_primerset1['forward'])
     assert(primerset1['reverse'] == expected_primerset1['reverse'])
 
     #test nonselective
-    primerset2 = create_primerset(prot1=fakegbk.features[0],prot2=fakegbk.features[1],
-                                  gbk=fakegbk,promoter=nonselective_promoters[0],
-                                  selection=False,overlaplength=10)
+    # primerset2 = create_primerset(prot1=fakegbk.features[0],prot2=fakegbk.features[1],
+    #                               gbk=fakegbk,promoter=nonselective_promoters[0],
+    #                               selection=False,overlaplength=10)
+
+    primerset2 = create_primerset_from_JSON(gapdata = fakegapdata,
+                                    promoter = nonselective_promoters[0],
+                                    selection=False,
+                                    overlaplength=10)
 
     expected_primerset2 = {"selection": False,
                        "forward": "A" * 10 + "ACCCGGACGCGTGGCACC", #insSP13 sequence from SPN12
                        "reverse": "T" * 10 + "GATCGCCCCTCCTGTGGC", #RC of end of SPN12
+                       "promoterid": "SNP11",
                        "strandorientation": "sright"}
 
-    assert(primerset2.keys() == expected_primerset2.keys())
+    assert(set(primerset2.keys()) == set(expected_primerset2.keys()))
     assert(primerset2['strandorientation'] == expected_primerset2['strandorientation'])
     assert(primerset2['selection'] == expected_primerset2['selection'])
     assert(primerset2['forward'] == expected_primerset2['forward'])
@@ -235,20 +259,40 @@ def test_create_primerset_colinear_left():
 
 
     """
-    fakegbk = SeqRecord(Seq("A"*150),
-                features = [SeqFeature(FeatureLocation(1, 50), type="CDS", strand=-1),
-                            SeqFeature(FeatureLocation(100, 150), type="CDS", strand=-1)])
+    fakegapdata = {'protein1': {'start': 1,
+                            'end': 50,
+                            'strand': -1,
+                            'sequence': "A"*50},
+               'gap':      {'start': 51,
+                            'end': 99,
+                            'strand': 1,
+                            'sequence': "A"*50},
+               'protein2': {'start': 100,
+                            'end': 150,
+                            'strand': -1,
+                            'sequence': "A"*50},
+               'id': 0,
+               'selected': 'true'}
+    # fakegbk = SeqRecord(Seq("A"*150),
+    #             features = [SeqFeature(FeatureLocation(1, 50), type="CDS", strand=-1),
+    #                         SeqFeature(FeatureLocation(100, 150), type="CDS", strand=-1)])
 
     #test selective
-    primerset1 = create_primerset(prot1=fakegbk.features[0],prot2=fakegbk.features[1],
-                                  gbk=fakegbk,promoter=selective_promoters[0],
-                                  selection=True,overlaplength=10)
+    # primerset1 = create_primerset(prot1=fakegbk.features[0],prot2=fakegbk.features[1],
+    #                               gbk=fakegbk,promoter=selective_promoters[0],
+    #                               selection=True,overlaplength=10)
+    primerset1 = create_primerset_from_JSON(gapdata = fakegapdata,
+                                        promoter = selective_promoters[0],
+                                        selection=True,
+                                        overlaplength=10)
 
     expected_primerset1 = {"selection": True,
                            "forward": "A" * 10 + "TCACAACCCTCCTAGTAA", #begining of SNP11
                            "reverse": "T" * 10 + "TCGACTACGTCGTAAGGC", #RC of the ned of leu2
+                           "promoterid": "SNP11",
                            "strandorientation": "sleft"}
-    assert(primerset1.keys() == expected_primerset1.keys())
+
+    assert(set(primerset1.keys()) == set(expected_primerset1.keys()))
     assert(primerset1['strandorientation'] == expected_primerset1['strandorientation'])
     assert(primerset1['selection'] == expected_primerset1['selection'])
     assert(primerset1['forward'] == expected_primerset1['forward'])
@@ -256,16 +300,22 @@ def test_create_primerset_colinear_left():
 
 
     #test nonselective
-    primerset2 = create_primerset(prot1=fakegbk.features[0],prot2=fakegbk.features[1],
-                                  gbk=fakegbk,promoter=nonselective_promoters[0],
-                                  selection=False,overlaplength=10)
+    # primerset2 = create_primerset(prot1=fakegbk.features[0],prot2=fakegbk.features[1],
+    #                               gbk=fakegbk,promoter=nonselective_promoters[0],
+    #                               selection=False,overlaplength=10)
+
+    primerset2 = create_primerset_from_JSON(gapdata = fakegapdata,
+                                        promoter = nonselective_promoters[0],
+                                        selection=False,
+                                        overlaplength=10)
 
     expected_primerset2 = {"selection": False,
                            "forward": "A" * 10 + "AAAGGGTCCTCCTCAACG", #begining of SNP12
                            "reverse": "T" * 10 + "CGCTGATGGCGCTCACCA", #rc of insSP14 sequence from SNP12
+                           "promoterid": "SNP12",
                            "strandorientation": "sleft"}
 
-    assert(primerset2.keys() == expected_primerset2.keys())
+    assert(set(primerset2.keys()) == set(expected_primerset2.keys()))
     assert(primerset2['strandorientation'] == expected_primerset2['strandorientation'])
     assert(primerset2['selection'] == expected_primerset2['selection'])
     assert(primerset2['forward'] == expected_primerset2['forward'])
@@ -289,20 +339,33 @@ def test_create_primerset_colinear_bidirectional():
     # <------  <----------- <------ ----> -------->  ----->
 
     """
-    fakegbk = SeqRecord(Seq("A"*150),
-                features = [SeqFeature(FeatureLocation(1, 50), type="CDS", strand=-1),
-                            SeqFeature(FeatureLocation(100, 150), type="CDS", strand=1)])
+    fakegapdata = {'protein1': {'start': 1,
+                                'end': 50,
+                                'strand': -1,
+                                'sequence': "A"*50},
+                   'gap':      {'start': 51,
+                                'end': 99,
+                                'strand': 1,
+                                'sequence': "A"*50},
+                   'protein2': {'start': 100,
+                                'end': 150,
+                                'strand': 1,
+                                'sequence': "A"*50},
+                   'id': 0,
+                   'selected': 'true'}
 
-    #test selective
-    primerset1 = create_primerset(prot1=fakegbk.features[0],prot2=fakegbk.features[1],
-                                  gbk=fakegbk,promoter=selective_promoters[0],
-                                  selection=True,overlaplength=10)
+    primerset1 = create_primerset_from_JSON(gapdata = fakegapdata,
+                                            promoter = selective_promoters[0],
+                                            selection=True,
+                                            overlaplength=10)
 
     expected_primerset1 = {"selection": True,
                            "forward": "A" * 10 + "TCACAACCCTCCTAGTAA", #begining of SNP11
                            "reverse": "T" * 10 + "TAATTCACCTCCTGAGGC", # end of SNP11
+                           "promoterid": "SNP11",
                            "strandorientation": "bi-good"}
-    assert(primerset1.keys() == expected_primerset1.keys())
+
+    assert(set(primerset1.keys()) == set(expected_primerset1.keys()))
     assert(primerset1['strandorientation'] == expected_primerset1['strandorientation'])
     assert(primerset1['selection'] == expected_primerset1['selection'])
     assert(primerset1['forward'] == expected_primerset1['forward'])
@@ -310,16 +373,18 @@ def test_create_primerset_colinear_bidirectional():
 
 
     #test nonselective
-    primerset2 = create_primerset(prot1=fakegbk.features[0],prot2=fakegbk.features[1],
-                                  gbk=fakegbk,promoter=nonselective_promoters[0],
-                                  selection=False,overlaplength=10)
+    primerset2 = create_primerset_from_JSON(gapdata = fakegapdata,
+                                            promoter = nonselective_promoters[0],
+                                            selection=False,
+                                            overlaplength=10)
 
     expected_primerset2 = {"selection": False,
                            "forward": "A" * 10 + "AAAGGGTCCTCCTCAACG", #begining of SNP12
                            "reverse": "T" * 10 + "GATCGCCCCTCCTGTGGC", # end of SPN12
+                           "promoterid": "SNP12",
                            "strandorientation": "bi-good"}
 
-    assert(primerset2.keys() == expected_primerset2.keys())
+    assert(set(primerset2.keys()) == set(expected_primerset2.keys()))
     assert(primerset2['strandorientation'] == expected_primerset2['strandorientation'])
     assert(primerset2['selection'] == expected_primerset2['selection'])
     assert(primerset2['forward'] == expected_primerset2['forward'])
@@ -327,7 +392,7 @@ def test_create_primerset_colinear_bidirectional():
 
 
 
-def test_test_extension():
+def test_confirm_extension():
     """
     if the beginnings or ends of multiple crispr sites are the same, there will be long
     repeast regions when added next to the Direct Repeat sequence. Check that the first two

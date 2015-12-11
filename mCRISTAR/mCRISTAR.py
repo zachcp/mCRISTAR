@@ -278,23 +278,12 @@ def create_primerset_from_JSON(gapdata, promoter, overlaplength=40, selection=No
     prot2 = SeqRecord(Seq(p2_sequence),
                       features = [SeqFeature(FeatureLocation(0, len(p2_sequence)), type="CDS", strand= p2_strand)])
 
-
-    # Get Sequences from the Protein Features USed for Overlaps
+    # Get Sequences from the Protein Features Used for Overlaps
     # get final overlaplengths of the 5'->3' prot1
-    if prot1.features[0].location.strand == 1:
-        fprimseq = str(prot1.seq[-overlaplength:])
-    elif prot1.features[0].location.strand == -1:
-        fprimseq = str(prot1.reverse_complement().seq[-overlaplength:])
-    else:
-        raise(ValueError("SeqFeatures Require a Strand"))
-
     # get first 20 RC'ed bp of prot2
-    if prot2.features[0].location.strand == 1:
-        rprimseq = str(prot2.reverse_complement().seq[-overlaplength:])
-    elif prot2.features[0].location.strand == -1:
-        rprimseq = str(prot2.seq[-overlaplength:])
-    else:
-        raise(ValueError("SeqFeatures Require a Strand"))
+    fprimseq = str(prot1.seq[-overlaplength:])
+    rprimseq = str(prot2.seq[:overlaplength].reverse_complement())
+
 
     # Get Sequences from the Insert
     #  ---p1--->  ----p2---> Single, right-facing sright
@@ -340,12 +329,10 @@ def create_primerset_from_JSON(gapdata, promoter, overlaplength=40, selection=No
         raise ValueError("protein must to be oriented")
 
     return  {"promoterid": promoter.id,
-            "selection": selection,
+             "selection": selection,
              "forward": fp,
              "reverse": rp,
              "strandorientation": strand_orientation}
-
-
 
 def find_crispr_sites_JSON(JSON_triplet):
     """
@@ -385,7 +372,6 @@ def find_crispr_sites_JSON(JSON_triplet):
             return False
         else:
             return True
-
 
     def create_crisprsite(crisprsite):
         #convert crisprsite from a sequence feature to its own sequence record with a single feature
