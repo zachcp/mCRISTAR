@@ -33,8 +33,8 @@ def upload():
     genbank_string = upload_file.read()
     gb_stringhandle = StringIO.StringIO(genbank_string)
     gbk = SeqIO.read(gb_stringhandle,"gb")
-    gbP = GBKProcessor(gbk)
-    return json.dumps(gbP.export())
+    gbkProcessor = GBKProcessor(gbk=gbk)
+    return json.dumps(gbkProcessor.export())
 
 @app.route("/makecassettes", methods=["GET","POST"])
 def makecassettes():

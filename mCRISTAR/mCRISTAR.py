@@ -3,100 +3,12 @@
 #from __future__ import print_function
 import re
 from itertools import product
-from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation
-from utilities import grouper, fillfeatures, simplegrouper
-from data import crisprspacer, selective_promoters, nonselective_promoters, gateway_3prime, gateway_5prime, crispr_DR
+from utilities import fillfeatures, simplegrouper
+from data import selective_promoters, nonselective_promoters, gateway_3prime, gateway_5prime, crispr_DR
 
-# class mCRISTAR(object):
-#     """
-#     The main CrispFactor object. This object
-#      1. Designs the CRISP Constructs
-#             1. Keeps track of the genes
-#             2. Calculates the intervals to target CRISPR
-#             3. Checks for Alt Cut Sites on CRISPR
-#             4. Designs the CRISPR Casettes
-#
-#      2. Designs the Recombination Cassettes
-#             1. Find Genes flanking CRISPR Cuts
-#             2. Design Primer Overhangs for generating the "bridge" priemrs
-#
-#      3. Outputs a tabular report of CRISPR Sites, Rcombination Casseettes.
-#         Alt: output Interactive SVG of the process.
-#
-#     """
-#     def __init__(self, gbk_file, min_operon_dist, overlaplength=40, maximum_cuts=7, crisprspacer = crisprspacer):
-#         """
-#
-#         :return: mCRISTAR Object
-#         """
-#         if isinstance(gbk_file, str):
-#             self.gbk = SeqIO.read(gbk_file,"gb")
-#         elif isinstance(gbk_file, SeqRecord):
-#             self.gbk = gbk_file
-#         else:
-#             raise(ValueError("gbk value may only be a filename or a SeqRecord"))
-#
-#         self.overlaplength = overlaplength
-#         self.min_operon_dist = min_operon_dist
-#         self.maximum_cuts = maximum_cuts
-#         self.crisprspacer = crisprspacer
-#         self.selective_promoters = selective_promoters
-#         self.nonselective_promoters = nonselective_promoters
-#         self.gaps = get_gaps(gbk=self.gbk,
-#                              mindist=self.min_operon_dist,
-#                              maximum_cuts=self.maximum_cuts)
-#         self.crisprsites = map(self.get_crispr_sites, self.gaps)
-#         self.crisprcassetes = self.make_crispr_cassette(crisprsites = self.crisprsites,
-#                                                         gbk=self.gbk,
-#                                                         arraysize=4)
-#         self.bridgeprimers = create_promoter_primers(seqfeatures = self.gaps,
-#                                                      selective_promoters = self.selective_promoters,
-#                                                      nonselective_promoters = self.nonselective_promoters,
-#                                                      gbk = self.gbk,
-#                                                      overlaplength= self.overlaplength)
-#
-#         assert(len(self.gaps) == len(self.crisprsites) == len(self.bridgeprimers))
-#         #assert(len(self.crisprcassetes) ==  (len(self.gaps)/4) + 1)
-#
-#     def get_crispr_sites(self, gap):
-#         return find_crispr_site(gap, gbk=self.gbk)
-#
-#     def make_crispr_cassette(self, crisprsites, gbk, arraysize):
-#         """
-#         group CRISPR sequences for use in the cassette. Currently only
-#         four cuts are possible per cassete with a total of 7 promoter combinations.
-#
-#         rep-seq1-rep-seq2-rep-seq3-rep-seq4-rep
-#
-#         """
-#         crispr_groups = grouper(crisprsites,arraysize)
-#
-#         crispr_cassettes = []
-#         for crisprs in crispr_groups:
-#             # need to obtain the features as follows:
-#             # <- gateway 5p - {DR - crispr}x - DR - gateway 3p -->
-#             clist = []
-#             clist.append(gateway_5prime)
-#
-#             for idx, crispr in enumerate(crisprs):
-#                 if idx == 0:
-#                     clist.append(crispr)
-#                 else:
-#                     clist.append(crispr_DR)
-#                     clist.append(crispr)
-#
-#             clist.append(gateway_3prime)
-#
-#             # combine the list into a single seqrecord
-#             cassette = reduce(lambda x,y: x+ y, clist)
-#             # add filler sequences to the crisprcassete
-#             cassette = fillfeatures(cassette)
-#             crispr_cassettes.append(cassette)
-#
-#         return crispr_cassettes
 
 class GBKProcessor(object):
     """
@@ -108,7 +20,7 @@ class GBKProcessor(object):
         :return: mCRISTAR Object
         """
         self.gaps = get_gaps(gbk=gbk, mindist=50)
-        self.processedGaps = processGaps(gaps=self.gaps, gbk=self.gbk)
+        self.processedGaps = processGaps(gaps=self.gaps, gbk=gbk)
         self.genes = processGBK(gbk)
 
     def export(self):
@@ -162,7 +74,7 @@ class GapProcessor(object):
 
 def choose_crisprsites(crisprgroup):
     """
-    :param crisprgroup: a list of lists of possible crisprsites thate are intended to be joined on a cassette
+    :param crisprgroup: a list of lists of possible crisprsites that are intended to be joined on a cassette
     :return: tuple of CRISPR sites
     """
     #generator of all possible crispr combinations as a list
@@ -239,132 +151,6 @@ def test_palindromic(crisprsites):
 
     return accept
 
-
-
-def create_promoter_primers(seqfeatures, selective_promoters, nonselective_promoters, gbk, overlaplength):
-    """
-    :param seqfeatures: triplet of (prot1,gap,prot2) SequenceFeatures
-    :param selective_promoters: Sequence Records of selective promoters
-    :param nonselective_promoters: Sequence Records of nonselective promoters
-    :param promoterseqs: list of primer adaptors to use the auxotroph genes of interest
-    :return:
-    """
-    def get_selective_promoter():
-        for promoter in selective_promoters:
-            yield promoter
-
-    def get_nonselective_promoter():
-        for promoter in nonselective_promoters:
-            yield promoter
-
-    def mod4(x):
-        return True if x % 4 == 0 else False
-
-    selective = get_selective_promoter()
-    nonselective = get_nonselective_promoter()
-
-    promoter_primers = []
-    for i, seqs in enumerate(seqfeatures):
-        prot1, gap, prot2 = seqs
-        if mod4(i):
-            promoter = selective.next()
-            primerset = create_primerset(prot1, prot2, promoter, gbk, selection=True)
-        else:
-            promoter = nonselective.next()
-            print promoter
-            primerset = create_primerset(prot1, prot2, promoter, gbk, selection=False)
-
-        promoter_primers.append(primerset)
-
-    return promoter_primers
-
-
-def create_primerset(prot1, prot2, promoter, gbk, overlaplength=40, selection=None):
-    """
-    Calculate the Primers needed to create the Bridge DNA Using a
-    Promoter with a Selective Element.
-
-    :param prot1:
-    :param prot2:
-    :param promoter:
-    :param gbk:
-    :param selection:
-    :return:
-    """
-
-    # promoters either have 6 features in the case of nonselective primers
-    # or they have 5 features in the case of selective promoters
-    if selection is True:
-        rbsF_rc, promoterF_rc, selective, promoterR, rbsR = promoter.features
-    else:
-        rbsF_rc, promoterF_rc, insF_rc, insR, promoterR, rbsR = promoter.features
-
-
-    # Get Sequences from the Protein Features USed for Overlaps
-    # get final overlaplengths of the 5'->3' prot1
-    if prot1.location.strand == 1:
-        fprimseq = str(prot1.extract(gbk).seq[-overlaplength:])
-    elif prot1.location.strand == -1:
-        fprimseq = str(prot1.extract(gbk).reverse_complement().seq[-overlaplength:])
-    else:
-        raise(ValueError("SeqFeatures Require a Strand"))
-
-    # get first 20 RC'ed bp of prot2
-    if prot2.location.strand == 1:
-        rprimseq = str(prot2.extract(gbk).reverse_complement().seq[-overlaplength:])
-    elif prot2.location.strand == -1:
-        rprimseq = str(prot2.extract(gbk).seq[-overlaplength:])
-    else:
-        raise(ValueError("SeqFeatures Require a Strand"))
-
-    # Get Sequences from the Insert
-    #  ---p1--->  ----p2---> Single, right-facing sright
-    #  <--p1----  <---p2---- Single,  left-facing sleft
-    #  <--p1----  ----p2---> Bidirectional.       bi-good
-    #  ---p1--->  <---p2---- Don't Use.           bi-bad
-    #
-    # Promoter Structure: Selective
-    # rbsF_rc  promoterF_rc selective promoterR  rbsR
-    # <------  <----------- --------> -------->  ----->
-    #
-    # Promoter Structure: Nonselective
-    # rbsF_rc  promoterF_rc insF_rc insR  promoterR  rbsR
-    # <------  <----------- <------ ----> -------->  ----->
-
-    if prot1.location.strand == 1 and prot2.location.strand == 1:
-        strand_orientation = "sright"
-        if selection is True:
-            fp = fprimseq +  str(selective.extract(promoter).seq[:18])
-            rp = rprimseq +  str(promoter[-18:].seq.reverse_complement())
-        else:
-            fp = fprimseq +  str(insR.extract(promoter).seq[:18])
-            rp = rprimseq +  str(promoter[-18:].seq.reverse_complement())
-
-    elif prot1.location.strand == -1 and prot2.location.strand == -1:
-        strand_orientation = "sleft"
-        if selection is True:
-            fp = fprimseq +  str(promoter[:18].seq)
-            rp = rprimseq +  str(selective.extract(promoter)[-18:].seq.reverse_complement())
-        else:
-            fp = fprimseq +  str(promoter[:18].seq)
-            rp = rprimseq +  str(insF_rc.extract(promoter).seq[:18])
-
-    elif prot1.location.strand == -1 and prot2.location.strand == 1:
-        strand_orientation = "bi-good"
-        fp = fprimseq +  str(promoter[:18].seq)
-        rp = rprimseq +  str(promoter[-18:].reverse_complement().seq)
-
-    elif prot1.location.strand == 1 and prot2.location.strand == -1:
-        strand_orientation = "bi-bad"
-        raise ValueError("gap with inward facing proteins do not need promoters.")
-    else:
-        raise ValueError("protein must to be oriented")
-
-    return  {"selection": selection,
-             "forward": fp,
-             "reverse": rp,
-             "strandorientation": strand_orientation}
-
 def get_gaps(gbk, mindist):
     """
     return a list of operons as determined by a minimum
@@ -418,59 +204,6 @@ def get_gaps(gbk, mindist):
                 gap = SeqFeature(FeatureLocation(prot1.location.end,prot2.location.start), type="gap", strand=1)
                 gaps.append((prot1, gap, prot2))
     return gaps
-
-def find_crispr_site(seqfeats, gbk):
-    """
-
-    :param seqfeat: a triplet of SequenceFeatures (prot1, gap, prot2)
-    :param gbkfile:
-    :return: a SequenceRecord with a dingle feature
-    """
-    #feature data
-    prot1, gap, prot2 = seqfeats
-    seqstr   = str(gap.extract(gbk).seq)
-    assert(len(seqstr) >= 0)
-    seqstart = gap.location.start
-    seqend   = gap.location.end
-
-    crisprsites = []
-    # forward facing crispr sites
-    fpat = re.compile(r'(?=(\S{21}GG))')
-    forward_hits = re.finditer(fpat, seqstr)
-    for match in forward_hits:
-        start, seq = match.start(), match.group(1)
-
-        crisprsite = SeqFeature(FeatureLocation(seqstart + start,
-                                                seqstart + start + len(seq) -3 ),
-                                type="crisprsite",strand=1)
-        crisprsites.append(crisprsite)
-
-    # reverse facing crispr sites
-    rpat = re.compile(r'(?=(CC\S{21}))')
-    reverse_hits = re.finditer(rpat, seqstr)
-    for match in reverse_hits:
-        start, seq = match.start(), match.group(1)
-        crisprsite = SeqFeature(FeatureLocation(seqstart + start + 3,
-                                                seqstart + start + len(seq)),
-                                type="crisprsite",strand=-1)
-        crisprsites.append(crisprsite)
-
-    #choose a single crispr site closest to the middle
-    meanloc = ((seqend - seqstart) / 2 ) + seqstart
-    def getdist(x):
-        return abs(meanloc - x.location.start)
-    dists = map(getdist, crisprsites)
-    minindex = dists.index(min(dists))
-    crisprsite = crisprsites[minindex]
-
-    #convert crisprsite from a sequence featrue to its own sequence record with a single feature
-    crisprsequence = str(crisprsite.extract(gbk).seq)
-
-    return SeqRecord(Seq(crisprsequence),
-                     features = [SeqFeature(FeatureLocation(0, len(crisprsequence)), type="crisprsite", strand=1)])
-
-
-
 
 
 def create_promoter_primers_from_JSON(gaps_from_JSON, selective_promoters, nonselective_promoters, overlaplength):
@@ -545,7 +278,7 @@ def create_primerset_from_JSON(gapdata, promoter, overlaplength=40, selection=No
                       features = [SeqFeature(FeatureLocation(0, len(p2_sequence)), type="CDS", strand= p2_strand)])
 
 
-# Get Sequences from the Protein Features USed for Overlaps
+    # Get Sequences from the Protein Features USed for Overlaps
     # get final overlaplengths of the 5'->3' prot1
     if prot1.features[0].location.strand == 1:
         fprimseq = str(prot1.seq[-overlaplength:])
@@ -670,40 +403,6 @@ def find_crispr_sites_JSON(JSON_triplet):
 
     return [create_crisprsite(csite) for csite in crisprsites]
 
-
-def make_crispr_cassette(crisprsites,  arraysize):
-    """
-    group CRISPR sequences for use in the cassette. Currently only
-    four cuts are possible per cassete with a total of 7 promoter combinations.
-
-    rep-seq1-rep-seq2-rep-seq3-rep-seq4-rep
-
-    """
-    crispr_groups = simplegrouper(crisprsites)
-
-    crispr_cassettes = []
-    for crisprs in crispr_groups:
-        # need to obtain the features as follows:
-        # <- gateway 5p - {DR - crispr}x - DR - gateway 3p -->
-        clist = []
-        clist.append(gateway_5prime)
-
-        for idx, crispr in enumerate(crisprs):
-            if idx == 0:
-                clist.append(crispr)
-            else:
-                clist.append(crispr_DR)
-                clist.append(crispr)
-
-        clist.append(gateway_3prime)
-
-        # combine the list into a single seqrecord
-        cassette = reduce(lambda x,y: x+ y, clist)
-        # add filler sequences to the crisprcassete
-        cassette = fillfeatures(cassette)
-        crispr_cassettes.append(cassette)
-
-    return crispr_cassettes
 
 
 def processGBK(gbk):
