@@ -25,7 +25,7 @@ class GBKProcessor(object):
 
     def export(self):
         return {"genes": self.genes,
-                "gaps": self.processedGaps}
+                "gaps":  self.processedGaps}
 
 
 class GapProcessor(object):
@@ -281,6 +281,7 @@ def create_primerset_from_JSON(gapdata, promoter, overlaplength=40, selection=No
     # Get Sequences from the Protein Features Used for Overlaps
     # get final overlaplengths of the 5'->3' prot1
     # get first 20 RC'ed bp of prot2
+
     fprimseq = str(prot1.seq[-overlaplength:])
     rprimseq = str(prot2.seq[:overlaplength].reverse_complement())
 
@@ -414,6 +415,17 @@ def processGBK(gbk):
 def processGaps(gaps, gbk):
     " obtain start/stop/locations for CDS sequences"
     gapdata = []
+
+    def extract_absolute_sequence(feature, gbk):
+        strand = feature.location.strand
+        if strand == 1:
+            return str(feature.extract(gbk).seq)
+        elif strand == -1:
+            rcseq = feature.extract(gbk).seq
+            return str(rcseq.reverse_complement())
+        else:
+            raise ValueError("strand must be plus or minus one")
+
     for idx, gap in enumerate(gaps):
         prot1, gap, prot2 = gap
         gapdata.append(
@@ -421,15 +433,15 @@ def processGaps(gaps, gbk):
          "selected": "true",
          "protein1": {"start": prot1.location.start,
                       "end": prot1.location.end,
-                      "sequence": str(prot1.extract(gbk).seq),
+                      "sequence": extract_absolute_sequence(prot1, gbk),
                       "strand": prot1.location.strand},
          "gap":     {"start": gap.location.start,
                       "end": gap.location.end,
-                      "sequence": str(gap.extract(gbk).seq),
+                      "sequence": extract_absolute_sequence(gap, gbk),
                       "strand": gap.location.strand},
         "protein2": {"start": prot2.location.start,
                       "end": prot2.location.end,
-                      "sequence": str(prot2.extract(gbk).seq),
+                      "sequence": extract_absolute_sequence(prot2, gbk),
                       "strand": prot2.location.strand}})
     return gapdata
 

@@ -14,9 +14,9 @@ import pytest
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
-from Bio.SeqFeature import SeqFeature, FeatureLocation
+from Bio.SeqFeature import SeqFeature, FeatureLocation, ExactPosition, BeforePosition
 from ..data import crisprspacer, selective_promoters, nonselective_promoters, SNP11, SNP12
-from ..mCRISTAR import GBKProcessor, GapProcessor, get_gaps, grouper, simplegrouper, confirm_extension, fillfeatures, create_primerset_from_JSON, confirm_nonpalindromic
+from ..mCRISTAR import GBKProcessor, GapProcessor, get_gaps, grouper, simplegrouper, confirm_extension, fillfeatures, create_primerset_from_JSON, confirm_nonpalindromic, processGaps
 
 def fixname(filename):
     "alter a filename to correspond to the test directory"
@@ -180,7 +180,7 @@ def test_create_primerset_colinear_right():
     fakegapdata = {'protein1': {'start': 1,
                         'end': 50,
                         'strand': 1,
-                        'sequence': "A"*50},
+                        'sequence': "C"*25+"A"*25},
            'gap':      {'start': 51,
                         'end': 99,
                         'strand': 1,
@@ -188,7 +188,7 @@ def test_create_primerset_colinear_right():
            'protein2': {'start': 100,
                         'end': 150,
                         'strand': 1,
-                        'sequence': "A"*50},
+                        'sequence': "A"*25 + "G"*25},
            'id': 0,
            'selected': 'true'}
     #test selective
@@ -257,7 +257,7 @@ def test_create_primerset_colinear_left():
     fakegapdata = {'protein1': {'start': 1,
                             'end': 50,
                             'strand': -1,
-                            'sequence': "A"*50},
+                            'sequence': "C"*25 +"A"*25},
                'gap':      {'start': 51,
                             'end': 99,
                             'strand': 1,
@@ -539,3 +539,93 @@ def test_fillfeatures():
 #     #assert that extracted feature sequences, when added together are the same as the original sequence
 #     seqs_text = [str(s.seq) for s in seqs]
 #     assert("".join(seqs_text) == str(newrecord.seq))
+
+def test_processGaps():
+
+    #serialize
+    gbk1 = SeqRecord(Seq("A"*25+"C"*25+"G"*25),
+                    features = [SeqFeature(FeatureLocation(0,25), strand=1),
+                                SeqFeature(FeatureLocation(25,50),strand=1),
+                                SeqFeature(FeatureLocation(50,75),strand=1)])
+
+    gbk2 = SeqRecord(Seq("A"*25+"C"*25+"G"*25),
+                    features = [SeqFeature(FeatureLocation(0,25), strand=-1),
+                                SeqFeature(FeatureLocation(25,50),strand=1),
+                                SeqFeature(FeatureLocation(50,75),strand=1)])
+
+    gbk3 = SeqRecord(Seq("A"*25+"C"*25+"G"*25),
+                    features = [SeqFeature(FeatureLocation(0,25), strand=1),
+                                SeqFeature(FeatureLocation(25,50),strand=1),
+                                SeqFeature(FeatureLocation(50,75),strand=-1)])
+    gbk4 = SeqRecord(Seq("A"*25+"C"*25+"G"*25),
+                    features = [SeqFeature(FeatureLocation(0,25), strand=-1),
+                                SeqFeature(FeatureLocation(25,50),strand=1),
+                                SeqFeature(FeatureLocation(50,75),strand=-1)])
+    gaps1 = gbk1.features
+    gaps2 = gbk2.features
+    gaps3 = gbk3.features
+    gaps4 = gbk4.features
+
+    assert(processGaps([gaps1], gbk1)[0] ==
+            {"id": 0,
+            "selected": "true",
+             "protein1": {"start": ExactPosition(0),
+                          "end": ExactPosition(25),
+                          "sequence": "A"*25,
+                          "strand": 1},
+             "gap":     {"start": ExactPosition(25),
+                          "end": ExactPosition(50),
+                          "sequence":"C"*25,
+                          "strand": 1},
+            "protein2": {"start": ExactPosition(50),
+                          "end": ExactPosition(75),
+                          "sequence": "G"*25,
+                          "strand": 1}})
+
+    assert(processGaps([gaps2], gbk2)[0] ==
+            {"id": 0,
+            "selected": "true",
+             "protein1": {"start": ExactPosition(0),
+                          "end": ExactPosition(25),
+                          "sequence": "A"*25,
+                          "strand": -1},
+             "gap":     {"start": ExactPosition(25),
+                          "end": ExactPosition(50),
+                          "sequence":"C"*25,
+                          "strand": 1},
+            "protein2": {"start": ExactPosition(50),
+                          "end": ExactPosition(75),
+                          "sequence": "G"*25,
+                          "strand": 1}})
+
+    assert(processGaps([gaps3], gbk3)[0] ==
+            {"id": 0,
+            "selected": "true",
+             "protein1": {"start": ExactPosition(0),
+                          "end": ExactPosition(25),
+                          "sequence": "A"*25,
+                          "strand": 1},
+             "gap":     {"start": ExactPosition(25),
+                          "end": ExactPosition(50),
+                          "sequence":"C"*25,
+                          "strand": 1},
+            "protein2": {"start": ExactPosition(50),
+                          "end": ExactPosition(75),
+                          "sequence": "G"*25,
+                          "strand": -1}})
+
+    assert(processGaps([gaps4], gbk4)[0] ==
+            {"id": 0,
+            "selected": "true",
+             "protein1": {"start": ExactPosition(0),
+                          "end": ExactPosition(25),
+                          "sequence": "A"*25,
+                          "strand": -1},
+             "gap":     {"start": ExactPosition(25),
+                          "end": ExactPosition(50),
+                          "sequence":"C"*25,
+                          "strand": 1},
+            "protein2": {"start": ExactPosition(50),
+                          "end": ExactPosition(75),
+                          "sequence": "G"*25,
+                          "strand": -1}})
