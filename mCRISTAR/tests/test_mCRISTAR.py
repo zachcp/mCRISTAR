@@ -201,8 +201,8 @@ def test_create_primerset_colinear_right():
                                     overlaplength=10)
 
     expected_primerset1 = {"selection": True,
-                           "forward": "A" * 10 + "TCGACGGTCGAGGAGAAC", # beginning of Leu
-                           "reverse": "T" * 10 + "TAATTCACCTCCTGAGGC", # end of SNP11
+                           "forward": "A" * 10 + "TCGACGGTCGAGGAGAACTT", # beginning of Leu
+                           "reverse": "T" * 10 + "TAATTCACCTCCTGAGGCTT", # end of SNP11
                            "promoterid": "SNP11",
                            "strandorientation": "sright"}
 
@@ -223,8 +223,8 @@ def test_create_primerset_colinear_right():
                                     overlaplength=10)
 
     expected_primerset2 = {"selection": False,
-                       "forward": "A" * 10 + "ACCCGGACGCGTGGCACC", #insSP13 sequence from SPN12
-                       "reverse": "T" * 10 + "GATCGCCCCTCCTGTGGC", #RC of end of SPN12
+                       "forward": "A" * 10 + "ACCCGGACGCGTGGCACCTC", #insSP13 sequence from SPN12
+                       "reverse": "T" * 10 + "GATCGCCCCTCCTGTGGCTA", #RC of end of SPN12
                        "promoterid": "SNP11",
                        "strandorientation": "sright"}
 
@@ -282,8 +282,8 @@ def test_create_primerset_colinear_left():
                                         overlaplength=10)
 
     expected_primerset1 = {"selection": True,
-                           "forward": "A" * 10 + "TCACAACCCTCCTAGTAA", #begining of SNP11
-                           "reverse": "T" * 10 + "TCGACTACGTCGTAAGGC", #RC of the ned of leu2
+                           "forward": "A" * 10 + "TCACAACCCTCCTAGTAACG", #begining of SNP11
+                           "reverse": "T" * 10 + "TCGACTACGTCGTAAGGCCG", #RC of the ned of leu2
                            "promoterid": "SNP11",
                            "strandorientation": "sleft"}
 
@@ -305,8 +305,8 @@ def test_create_primerset_colinear_left():
                                         overlaplength=10)
 
     expected_primerset2 = {"selection": False,
-                           "forward": "A" * 10 + "AAAGGGTCCTCCTCAACG", #begining of SNP12
-                           "reverse": "T" * 10 + "CGCTGATGGCGCTCACCA", #rc of insSP14 sequence from SNP12
+                           "forward": "A" * 10 + "AAAGGGTCCTCCTCAACGAC", #begining of SNP12
+                           "reverse": "T" * 10 + "CGCTGATGGCGCTCACCAGG", #rc of insSP14 sequence from SNP12
                            "promoterid": "SNP12",
                            "strandorientation": "sleft"}
 
@@ -355,8 +355,8 @@ def test_create_primerset_colinear_bidirectional():
                                             overlaplength=10)
 
     expected_primerset1 = {"selection": True,
-                           "forward": "A" * 10 + "TCACAACCCTCCTAGTAA", #begining of SNP11
-                           "reverse": "T" * 10 + "TAATTCACCTCCTGAGGC", # end of SNP11
+                           "forward": "A" * 10 + "TCACAACCCTCCTAGTAACG", #begining of SNP11
+                           "reverse": "T" * 10 + "TAATTCACCTCCTGAGGCTT", # RC end of SNP11
                            "promoterid": "SNP11",
                            "strandorientation": "bi-good"}
 
@@ -374,8 +374,8 @@ def test_create_primerset_colinear_bidirectional():
                                             overlaplength=10)
 
     expected_primerset2 = {"selection": False,
-                           "forward": "A" * 10 + "AAAGGGTCCTCCTCAACG", #begining of SNP12
-                           "reverse": "T" * 10 + "GATCGCCCCTCCTGTGGC", # end of SPN12
+                           "forward": "A" * 10 + "AAAGGGTCCTCCTCAACGAC", #begining of SNP12
+                           "reverse": "T" * 10 + "GATCGCCCCTCCTGTGGCTA", # end of SPN12
                            "promoterid": "SNP12",
                            "strandorientation": "bi-good"}
 
