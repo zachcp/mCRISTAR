@@ -303,25 +303,25 @@ def create_primerset_from_JSON(gapdata, promoter, overlaplength=40, selection=No
     if prot1.features[0].location.strand == 1 and prot2.features[0].location.strand == 1:
         strand_orientation = "sright"
         if selection is True:
-            fp = fprimseq +  str(selective.extract(promoter).seq[:18])
-            rp = rprimseq +  str(promoter[-18:].seq.reverse_complement())
+            fp = fprimseq +  str(selective.extract(promoter).seq[:20])
+            rp = rprimseq +  str(promoter[-20:].seq.reverse_complement())
         else:
-            fp = fprimseq +  str(insR.extract(promoter).seq[:18])
-            rp = rprimseq +  str(promoter[-18:].seq.reverse_complement())
+            fp = fprimseq +  str(insR.extract(promoter).seq[:20])
+            rp = rprimseq +  str(promoter[-20:].seq.reverse_complement())
 
     elif prot1.features[0].location.strand == -1 and prot2.features[0].location.strand == -1:
         strand_orientation = "sleft"
         if selection is True:
-            fp = fprimseq +  str(promoter[:18].seq)
-            rp = rprimseq +  str(selective.extract(promoter)[-18:].seq.reverse_complement())
+            fp = fprimseq +  str(promoter[:20].seq)
+            rp = rprimseq +  str(selective.extract(promoter)[-20:].seq.reverse_complement())
         else:
-            fp = fprimseq +  str(promoter[:18].seq)
-            rp = rprimseq +  str(insF_rc.extract(promoter).seq[:18])
+            fp = fprimseq +  str(promoter[:20].seq)
+            rp = rprimseq +  str(insF_rc.extract(promoter).seq[:20])
 
     elif prot1.features[0].location.strand == -1 and prot2.features[0].location.strand == 1:
         strand_orientation = "bi-good"
-        fp = fprimseq +  str(promoter[:18].seq)
-        rp = rprimseq +  str(promoter[-18:].reverse_complement().seq)
+        fp = fprimseq +  str(promoter[:20].seq)
+        rp = rprimseq +  str(promoter[-20:].reverse_complement().seq)
 
     elif prot1.features[0].location.strand == 1 and prot2.features[0].location.strand == -1:
         strand_orientation = "bi-bad"
