@@ -19,3 +19,21 @@ of primers. The frontend is written in Clojurescript using the [re-frame](https:
 pip install -r requirements.txt
 python main.py
 ```
+
+## To Upload
+```[shell]
+make upload
+````
+
+## To Develop
+```
+#in one terminal window
+cd cljs
+lein figwheel
+#in another window
+#python 2
+dev_appserver.py.
+
+#python3 osx
+/usr/bin/python2.7  /usr/local/bin/dev_appserver.py .
+```
