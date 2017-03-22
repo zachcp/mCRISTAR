@@ -1,5 +1,7 @@
 (ns mCRISTAR.views
-  (:require [re-frame.core :as re-frame]))
+  (:require [re-frame.core :as re-frame]
+            [reagent.core :as reagent]
+            [scribl]))
 
 
 (defn drawgene
@@ -23,7 +25,7 @@
     (if (> strand 0)
       ;; Positive Strand
       ;;  --->
-      (let [arrowloc (if (<= (- end start) arrow-length )
+      (let [arrowloc (if (<= (- end start) arrow-length)
                       start
                       (- end arrow-length))
             topleft [start, (+ trackheight(/ height 2))]
@@ -37,7 +39,7 @@
                     :id (:id gene)}])
       ;; Negative Strand
       ;; <-----
-      (let [arrowloc (if (<= (- end start) arrow-length )
+      (let [arrowloc (if (<= (- end start) arrow-length)
                        end
                        (+ start arrow-length))
             point [start, trackheight]
@@ -79,7 +81,7 @@
 
 
 (defn form-view []
-  [:div {:class "row" }
+  [:div {:class "row"}
     [:h3  "Step 1: Upload Your Genbank File"]
     [:hr]
     [:form {:id "gbkform" :method "post" :enc-type "multipart/form-data"}
@@ -99,13 +101,13 @@
         end (:end (:gap gap))
         size (- end start)]
     [:div {:class "panel panel-default"}
-     (str "Gap ID=" id " Size: " size)
+     (str "Gap ID=" id " Size: " size)]))
 
    ;{:id 1
    ; :protein1 {:start 150 :end 180 :sequence "ACACAC" :strand 1}
    ; :gap      {:start 190 :end 220 :sequence "ACACACACCCCCC" :strand 1}
    ; :protein2 {:start 230 :end 240 :sequence "ACACACACCCCCC" :strand 1}
-   ]))
+
 
 (defn minigapssvg [gaps scalefactor]
   (let [widths (map #(* scalefactor (- (:end (:gap %)) (:start (:gap %)))) gaps)
@@ -181,14 +183,40 @@
        [:div
          [:div {:class "row"}
           [:div {:class "four columns"} "Promoter Cassete: " (:promoterid primer)]
-          [:div {:class "six columns"} (:selection primer) ]]
+          [:div {:class "six columns"} (:selection primer)]]
          [:table {:class "u-full-width"}
           [:tr [:td "Forward Primer"] [:td (:forward primer)]]
           [:tr [:td "Reverse Primer"] [:td (:reverse primer)]]]])]))
 
+
+(defn scribl-panel []
+  (let [active-gaps (re-frame/subscribe [:active-gaps])
+        genes (re-frame/subscribe [:genes])
+        gaps (re-frame/subscribe [:gaps])
+        width (re-frame/subscribe [:svg-width])]
+
+    (reagent/create-class
+      {:reagent-render (fn [] [:canvas {:id "scribl" :width @width}])
+
+       :component-did-mount (fn []
+                              (let [cnvas (js/document.getElementById "scribl")
+                                    chart (js/Scribl. cnvas 800)
+                                    gene (.addGene chart 5 750 '+')]
+                                (doseq [gene @genes]
+                                  (let [genewidth (- (:end gene) (:start gene))
+                                        strand (if (= 1 (:strand gene)) "+" "-")]
+                                    (.addGene chart (:start gene)
+                                                    genewidth
+                                                    strand)))
+                                (set! (.-scrollable chart) "true")
+                                (.draw chart)))})))
+
+
 (defn main-panel []
   (let [app-cycle (re-frame/subscribe [:app-cycle])]
     [:div
+
+     (when (= 1 @app-cycle) [scribl-panel])
      (when (= 0 @app-cycle) [form-view])
      (when (= @app-cycle 1) [svg-main])
      (when (> @app-cycle 1)

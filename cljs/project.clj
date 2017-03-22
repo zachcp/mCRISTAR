@@ -4,15 +4,15 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.clojure/clojurescript "1.7.170"]
+  :dependencies [[org.clojure/clojure "1.8.0"]
+                 [org.clojure/clojurescript "1.9.227"]
                  [org.clojure/core.async "0.2.374"]
-                 [reagent "0.5.1"]
-                 [re-frame "0.5.0"]
-                 [cljs-ajax "0.5.1"]]
+                 [reagent "0.6.1"]
+                 [re-frame "0.9.2"]
+                 [cljs-ajax "0.5.8"]]
 
-  :plugins [[lein-cljsbuild "1.1.1"]
-            [lein-figwheel "0.5.0-1"]]
+  :plugins [[lein-cljsbuild "1.1.5"]
+            [lein-figwheel "0.5.9"]]
 
   :source-paths ["src"]
 
@@ -27,7 +27,10 @@
                 :compiler {:main mCRISTAR.core
                            :asset-path "../static/js/compiled/out"
                            :output-to "../static/js/compiled/mCRISTAR.js"
+                           :optimizations :simple
                            :output-dir "../static/js/compiled/out"
+                           :foreign-libs [{:file "src/JS/Scribl/Scribl.1.1.5.min.js"
+                                           :provides ["scribl"]}]
                            :source-map-timestamp true}}
                ;; This next build is an compressed minified build for
                ;; production. You can build this with:
@@ -37,9 +40,11 @@
                 :compiler {:output-to "../static/js/compiled/mCRISTAR.js"
                            :main mCRISTAR.core
                            :optimizations :advanced
+                           :foreign-libs [{:file "src/JS/Scribl/Scribl.1.1.5.min.js"
+                                           :provides ["scribl"]}]
                            :pretty-print false}}]}
 
-  :figwheel {;; :http-server-root "public" ;; default and assumes "resources"
+  :figwheel {});; :http-server-root "public" ;; default and assumes "resources"
              ;; :server-port 3449 ;; default
              ;; :server-ip "127.0.0.1"
 
@@ -68,4 +73,4 @@
 
              ;; to configure a different figwheel logfile path
              ;; :server-logfile "tmp/logs/figwheel-logfile.log"
-             })
+
