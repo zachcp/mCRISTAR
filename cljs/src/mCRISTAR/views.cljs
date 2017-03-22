@@ -200,14 +200,36 @@
 
        :component-did-mount (fn []
                               (let [cnvas (js/document.getElementById "scribl")
-                                    chart (js/Scribl. cnvas 800)
-                                    gene (.addGene chart 5 750 '+')]
+                                    chart (js/Scribl. cnvas @width)
+                                    track1 (.addTrack chart)
+                                    track2 (.addTrack chart)
+                                    track3 (.addTrack chart)]
+
+                                ; apply style
+                                (set! (.-drawStyle track1) "collapse")
+                                (set! (.-drawStyle track2) "collapse")
+                                (set! (.-drawStyle track3) "collapse")
+
+                                (set! (.-laneSizes chart) 20)
+                                (set! (.-lanebBuffer chart) 5)
+                                (set! (.-trackBuffer chart) 10)
+
+
+                                ; add the genes
                                 (doseq [gene @genes]
                                   (let [genewidth (- (:end gene) (:start gene))
                                         strand (if (= 1 (:strand gene)) "+" "-")]
-                                    (.addGene chart (:start gene)
-                                                    genewidth
-                                                    strand)))
+                                    (if (= strand "+")
+                                      (.addGene track1 (:start gene) genewidth strand)
+                                      (.addGene track2 (:start gene) genewidth strand))))
+
+                                ; add the gaps
+                                (doseq [gap @gaps]
+                                  (let [gapstart (get-in gap [:gap :start])
+                                        gapwidth (- (get-in gap [:gap :end])
+                                                    (get-in gap [:gap :start]))]
+                                    (.addGene track3 gapstart gapwidth "+")))
+
                                 (set! (.-scrollable chart) "true")
                                 (.draw chart)))})))
 
