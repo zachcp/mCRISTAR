@@ -101,13 +101,13 @@
   :upload-file
   (fn
     [db [_ fd]]
-      (POST
-        "/upload"
-        {:body fd
+    (POST
+      "/upload"
+      {:body fd
          ;:response-format (raw-response-format)
-         :response-format :json
-         :keywords? true
-         :handler       #(re-frame/dispatch [:process-gaps %1])
-         :error-handler #(re-frame/dispatch [:bad-response %1])})
-      db))    ;; pure handlers must return a db (unchanged in this case)
+       :response-format :json
+       :keywords? true
+       :handler       #(re-frame/dispatch [:process-gaps %1])
+       :error-handler #(re-frame/dispatch [:bad-response %1])})
+    db))    ;; pure handlers must return a db (unchanged in this case)
 

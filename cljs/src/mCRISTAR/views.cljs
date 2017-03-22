@@ -1,7 +1,8 @@
 (ns mCRISTAR.views
   (:require [re-frame.core :as re-frame]
             [reagent.core :as reagent]
-            [scribl]))
+            [scribl]
+            [draggable]))
 
 
 (defn drawgene

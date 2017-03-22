@@ -39,12 +39,12 @@
                      :protein1 {:start 10 :end 50 :sequence "ACACAC" :strand 1}
                      :gap      {:start 51 :end 100 :sequence "ACACACACCCCCC" :strand 1}
                      :protein2 {:start 101 :end 140 :sequence "ACACACACCCCCC" :strand 1}
-                     :selected true }
+                     :selected true}
                     {:id 1
                      :protein1 {:start 150 :end 180 :sequence "ACACAC" :strand 1}
                      :gap      {:start 190 :end 220 :sequence "ACACACACCCCCC" :strand 1}
                      :protein2 {:start 230 :end 240 :sequence "ACACACACCCCCC" :strand 1}
-                     :selected true }
+                     :selected true}
                     :cassettes       [ [{:start 0
                                          :end 10
                                          :sequence "ACACAC"
@@ -56,8 +56,8 @@
                                       [{:start 21
                                         :end 30
                                         :sequence "ACACAC"
-                                        :type "GoldenGate site"}]
-                                      ]]
+                                        :type "GoldenGate site"}]]]
+
    :primers        [{:promoterid "SNP11"
                      :selection  "LEU"
                      :forward "ACACACA"
