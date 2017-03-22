@@ -4,7 +4,7 @@ devserver = /usr/local/bin/dev_appserver.py #from homebrew: brew install app-eng
 
 
 dev:
-	#in another window:cd cljs leinfigwheel &
+	#in another window:cd cljs lein figwheel &
 	$(python) $(devserver) .
 
 pipinstall:
