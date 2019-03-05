@@ -10,7 +10,7 @@
 # note applicaiton set in gcloud using `gcloud init`
 # version: 7
 runtime: python37
-api_version: 1
+#api_version: 1
 
 # Handlers define how to route requests to your application.
 handlers:
