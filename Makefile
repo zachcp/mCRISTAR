@@ -16,5 +16,5 @@ pipinstall:
 compilecljs:
 	cd cljs && lein clean && lein cljsbuild once min && cd ..
 
-deploy:
+deploy: compilecljs
 	gcloud app deploy
