@@ -145,6 +145,13 @@
      [slider :svg-scale scale @scale-min @scale-max @scale-step]
      "Translate"
      [slider :svg-translate translate (- @sequence-end)  @sequence-end 1]
+
+     [:div {:class "button"
+            :on-click #(re-frame/dispatch [:toggle-gaps])} "Toggle All Gaps"]
+
+     [:div {:class "button"
+           :on-click #(re-frame/dispatch [:unselect-gaps])} "Unselect All Gaps"]
+     
      [:svg {:width @width}
       (doall (for [gene @genes] [drawgene gene @scale @translate]))
       (doall (for [gap @gaps] [drawgap gap @scale @translate]))]
@@ -153,7 +160,8 @@
      [:h4 "Active Gap Count: " (count @active-gaps)]
 
      [:div {:class "button"
-            :on-click #(re-frame/dispatch [:make-cassettes])} "Process Gaps"]]))
+            :on-click #(re-frame/dispatch [:make-cassettes])} "Process Gaps"]
+     ]))
 
 
 (defn cassettes-main []

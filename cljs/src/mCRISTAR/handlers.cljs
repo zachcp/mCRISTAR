@@ -53,6 +53,7 @@
           (assoc :primers primers)
           (assoc :app-cycle 2)))))
 
+
 (re-frame/register-handler
   :process-gaps
   (fn
@@ -90,6 +91,32 @@
   (fn  [appdb [_ id]]
     (js/console.log (str id "  toggled!"))
     (update-in appdb [:gaps id :selected] not)))
+
+(re-frame/register-handler
+ :toggle-gaps
+ (fn
+   [appdb _]
+   (let [gapcount (count (:gaps appdb))]
+     (loop [gapidx 0
+            db appdb]
+       (if (= gapidx gapcount)
+         db
+         (recur (inc gapidx) (update-in db [:gaps gapidx :selected] not)))))))
+    
+
+(re-frame/register-handler
+ :unselect-gaps
+ (fn
+   [appdb _]
+   (let [gapcount (count (:gaps appdb))]
+     (loop [gapidx 0
+            db appdb]
+       (if (= gapidx gapcount)
+         db
+         (recur (inc gapidx) (assoc-in db [:gaps gapidx :selected] false)))))))
+
+
+
 
 (re-frame/register-handler
   :update

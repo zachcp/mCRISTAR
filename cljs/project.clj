@@ -4,15 +4,15 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.clojure/clojurescript "1.7.170"]
-                 [org.clojure/core.async "0.2.374"]
-                 [reagent "0.5.1"]
-                 [re-frame "0.5.0"]
-                 [cljs-ajax "0.5.1"]]
+  :dependencies [[org.clojure/clojure "1.10.0"]
+                 [org.clojure/clojurescript "1.10.520"]
+                 [org.clojure/core.async "0.4.490"]
+                 [reagent "0.8.1"]
+                 [re-frame "0.10.6"]
+                 [cljs-ajax "0.8.0"]]
 
-  :plugins [[lein-cljsbuild "1.1.1"]
-            [lein-figwheel "0.5.0-1"]]
+  :plugins [[lein-cljsbuild "1.1.7"]
+            [lein-figwheel "0.5.18"]]
 
   :source-paths ["src"]
 
@@ -39,7 +39,7 @@
                            :optimizations :advanced
                            :pretty-print false}}]}
 
-  :figwheel {;; :http-server-root "public" ;; default and assumes "resources"
+  :figwheel {});; :http-server-root "public" ;; default and assumes "resources"
              ;; :server-port 3449 ;; default
              ;; :server-ip "127.0.0.1"
 
@@ -68,4 +68,4 @@
 
              ;; to configure a different figwheel logfile path
              ;; :server-logfile "tmp/logs/figwheel-logfile.log"
-             })
+             
