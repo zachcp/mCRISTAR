@@ -3,6 +3,7 @@
 #from __future__ import print_function
 import copy
 import re
+from functools import reduce
 from itertools import product
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
@@ -232,10 +233,10 @@ def create_promoter_primers_from_JSON(gaps_from_JSON, selective_promoters, nonse
     promoter_primers = []
     for i, gapdata in enumerate(gaps_from_JSON):
         if mod4(i):
-            promoter = selective.next()
+            promoter = next(selective)
             primerset = create_primerset_from_JSON(gapdata, promoter, selection=True)
         else:
-            promoter = nonselective.next()
+            promoter = next(nonselective)
             print(promoter)
             primerset = create_primerset_from_JSON(gapdata, promoter, selection=False)
 
