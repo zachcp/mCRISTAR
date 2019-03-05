@@ -7,7 +7,7 @@ from itertools import product
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation
-from data import selective_promoters, nonselective_promoters, gateway_3prime, gateway_5prime, crispr_DR
+from .data import selective_promoters, nonselective_promoters, gateway_3prime, gateway_5prime, crispr_DR
 
 
 class GBKProcessor(object):
@@ -236,7 +236,7 @@ def create_promoter_primers_from_JSON(gaps_from_JSON, selective_promoters, nonse
             primerset = create_primerset_from_JSON(gapdata, promoter, selection=True)
         else:
             promoter = nonselective.next()
-            print promoter
+            print(promoter)
             primerset = create_primerset_from_JSON(gapdata, promoter, selection=False)
 
         promoter_primers.append(primerset)

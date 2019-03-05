@@ -1,15 +1,20 @@
-python = /usr/bin/python2.7 
-appcfg = /usr/local/bin/appcfg.py #from homebrew: brew install app-engine-python
-devserver = /usr/local/bin/dev_appserver.py #from homebrew: brew install app-engine-python
+# from homebrew: 
+# brew tap caskroom/cask
+# brew cask install google-cloud-sdk
 
+
+python = /usr/local/bin/python3 
 
 dev:
 	#in another window:cd cljs leinfigwheel &
-	$(python) $(devserver) .
+	$(python) main.py
 
 pipinstall:
-	pip install -r requirements.txt -t lib
+	pip3 install -r requirements.txt -t lib
+	pip3 install -r requirements_bio.txt -t lib --no-deps
 
-upload:
-	cd cljs;lein clean;lein cljsbuild once min
-	$(python) $(appcfg) -A mcristar-1125 update app.yaml
+compilecljs:
+	cd cljs && lein clean && lein cljsbuild once min && cd ..
+
+deploy:
+	gcloud app deploy
