@@ -11,6 +11,7 @@ dev:
 
 pipinstall:
 	pip3 install -r requirements.txt -t lib
+	pip3 install -r requirements_bio.txt -t lib --no-deps
 
 compilecljs:
 	cd cljs && lein clean && lein cljsbuild once min && cd ..
