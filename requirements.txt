@@ -5,5 +5,5 @@
 #
 # Note: The `lib` directory is added to `sys.path` by `appengine_config.py`.
 # manually add crisprfactor to the lib directory
-Flask >= 0.10
-Biopython >= 1.65
+Flask >= 1.0.2
+Biopython >= 1.73

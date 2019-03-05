@@ -1,7 +1,10 @@
 """`main` is the top level module for your Flask application."""
 
+# [START gae_python37_app]
+
 # Import the Flask Framework
-import StringIO
+from io import StringIO
+from io import BytesIO
 import json
 
 from Bio import SeqIO
@@ -29,9 +32,9 @@ def refactor():
 @app.route("/upload", methods=["GET","POST"])
 def upload():
     "upload and process the GBK file"
-    upload_file = request.files["file"]
-    genbank_string = upload_file.read()
-    gb_stringhandle = StringIO.StringIO(genbank_string)
+    upload_file  = request.files["file"]
+    genbank_string  = upload_file.read()
+    gb_stringhandle = StringIO(str(genbank_string, 'utf-8'))
     gbk = SeqIO.read(gb_stringhandle,"gb")
     gbkProcessor = GBKProcessor(gbk=gbk)
     return json.dumps(gbkProcessor.export())
@@ -56,3 +59,5 @@ def application_error(e):
 if __name__ == "__main__":
     app.debug=True
     app.run()
+
+# [END gae_python37_app]
